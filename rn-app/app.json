@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "UG CS Registration",
+    "slug": "ug-cs-registration",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#153D70",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "edu.ug.cs.registration"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#153D70"
+      },
+      "package": "edu.ug.cs.registration"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}

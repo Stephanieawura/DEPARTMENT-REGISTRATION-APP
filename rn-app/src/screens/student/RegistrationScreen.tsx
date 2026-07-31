@@ -1,0 +1,303 @@
+import { useState } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Feather } from "@expo/vector-icons";
+import * as DocumentPicker from "expo-document-picker";
+import { Colors } from "../../constants/Colors";
+
+type SubTab = "upload" | "status";
+type VerificationStatus = "Pending" | "Approved" | "Rejected";
+
+const STATUS_CONFIG = {
+  Pending: {
+    icon: "clock" as const,
+    iconColor: "#d97706",
+    bg: "#fffbeb",
+    border: "#fde68a",
+    headline: "Verification Pending",
+    message: "Your submission is under review by the department. This usually takes 1–2 working days.",
+    textColor: "#b45309",
+  },
+  Approved: {
+    icon: "check-circle" as const,
+    iconColor: "#059669",
+    bg: "#ecfdf5",
+    border: "#a7f3d0",
+    headline: "Clearance Approved",
+    message: "Your departmental clearance has been approved. You are fully registered.",
+    textColor: "#065f46",
+  },
+  Rejected: {
+    icon: "x-circle" as const,
+    iconColor: "#dc2626",
+    bg: "#fef2f2",
+    border: "#fecaca",
+    headline: "Submission Rejected",
+    message: "Your submission was rejected. Please review the feedback and resubmit.",
+    textColor: "#991b1b",
+  },
+};
+
+const TIMELINE = [
+  { label: "Account Created", done: true, time: "Jan 14, 9:00am" },
+  { label: "Courses Synced", done: true, time: "Jan 15, 9:32am" },
+  { label: "Document Uploaded", done: true, time: "Jan 15, 9:35am" },
+  { label: "Submitted for Verification", done: true, time: "Jan 15, 9:36am" },
+  { label: "Under Review", done: false, time: "In progress" },
+  { label: "Clearance Decision", done: false, time: "Awaiting" },
+];
+
+const FORM_FIELDS = [
+  { label: "Full Name", value: "Stephanie Awrabena Dunyo" },
+  { label: "Student ID", value: "10897354" },
+  { label: "Programme", value: "BSc Information Technology" },
+  { label: "Level", value: "Level 300" },
+  { label: "Academic Year", value: "2023/2024" },
+  { label: "Semester", value: "Semester 2" },
+];
+
+export default function RegistrationScreen() {
+  const [subTab, setSubTab] = useState<SubTab>("upload");
+  const [uploadedFile, setUploadedFile] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const status: VerificationStatus = "Pending";
+  const cfg = STATUS_CONFIG[status];
+
+  async function handlePick() {
+    const result = await DocumentPicker.getDocumentAsync({ type: "application/pdf" });
+    if (!result.canceled && result.assets[0]) {
+      setUploadedFile(result.assets[0].name);
+    }
+  }
+
+  function handleSubmit() {
+    if (!uploadedFile) return;
+    setSubmitting(true);
+    setTimeout(() => {
+      setSubmitting(false);
+      Alert.alert("Submitted", "Your registration has been submitted for verification.");
+    }, 1200);
+  }
+
+  const TABS: { id: SubTab; label: string; icon: React.ComponentProps<typeof Feather>["name"] }[] = [
+    { id: "upload", label: "Upload", icon: "upload" },
+    { id: "status", label: "Status", icon: "check-circle" },
+  ];
+
+  return (
+    <SafeAreaView style={styles.safe} edges={["top"]}>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.headerTitle}>Registration</Text>
+          <Text style={styles.headerSub}>{subTab === "upload" ? "Upload documents" : "Track status"}</Text>
+        </View>
+      </View>
+
+      {/* Sub-tabs */}
+      <View style={styles.subTabBar}>
+        {TABS.map((tab) => (
+          <TouchableOpacity
+            key={tab.id}
+            onPress={() => setSubTab(tab.id)}
+            style={styles.subTab}
+            activeOpacity={0.8}
+          >
+            <Feather name={tab.icon} size={15} color={subTab === tab.id ? Colors.deepBlue : Colors.gray400} />
+            <Text style={[styles.subTabText, subTab === tab.id && styles.subTabTextActive]}>
+              {tab.label}
+            </Text>
+            {subTab === tab.id && <View style={styles.subTabIndicator} />}
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {subTab === "upload" ? (
+        <ScrollView style={styles.body} contentContainerStyle={{ padding: 16, gap: 14 }}>
+          {/* Info banner */}
+          <View style={styles.infoBanner}>
+            <Feather name="info" size={15} color="#1d4ed8" />
+            <Text style={styles.infoText}>
+              Download your Proof of Registration from the UG MISWeb portal and upload the PDF here for departmental clearance verification.
+            </Text>
+          </View>
+
+          {/* Upload area */}
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>Proof of Registration</Text>
+              <Text style={styles.cardSub}>PDF format · Max 5MB</Text>
+            </View>
+            {!uploadedFile ? (
+              <TouchableOpacity style={styles.dropZone} onPress={handlePick} activeOpacity={0.8}>
+                <View style={styles.dropIcon}>
+                  <Feather name="upload" size={24} color={Colors.deepBlue} />
+                </View>
+                <Text style={styles.dropTitle}>Tap to upload PDF</Text>
+                <Text style={styles.dropSub}>Select from your files</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.fileRow}>
+                <View style={styles.fileIcon}>
+                  <Feather name="file-text" size={18} color={Colors.white} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.fileName} numberOfLines={1}>{uploadedFile}</Text>
+                  <Text style={styles.fileMeta}>PDF · Just now</Text>
+                </View>
+                <TouchableOpacity onPress={() => setUploadedFile(null)}>
+                  <Feather name="x" size={16} color={Colors.gray400} />
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+
+          {/* Form */}
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Departmental Registration Form</Text>
+            {FORM_FIELDS.map((f) => (
+              <View key={f.label} style={styles.formField}>
+                <Text style={styles.formLabel}>{f.label}</Text>
+                <View style={styles.formValue}>
+                  <Text style={styles.formValueText}>{f.value}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+
+          <TouchableOpacity
+            onPress={handleSubmit}
+            disabled={!uploadedFile || submitting}
+            style={[styles.submitBtn, (!uploadedFile || submitting) && styles.submitBtnDisabled]}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.submitBtnText}>
+              {submitting ? "Submitting…" : "Submit for Verification"}
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      ) : (
+        <ScrollView style={styles.body} contentContainerStyle={{ padding: 16, gap: 14 }}>
+          {/* Status card */}
+          <View style={[styles.statusCard, { backgroundColor: cfg.bg, borderColor: cfg.border }]}>
+            <View style={[styles.statusIconWrap, { backgroundColor: Colors.white }]}>
+              <Feather name={cfg.icon} size={32} color={cfg.iconColor} />
+            </View>
+            <View style={styles.statusTextBlock}>
+              <Text style={[styles.statusHeadline, { color: cfg.textColor }]}>{cfg.headline}</Text>
+              <Text style={styles.statusMessage}>{cfg.message}</Text>
+            </View>
+            <View style={styles.statusBadgeWrap}>
+              <View style={[styles.statusBadge, { backgroundColor: cfg.bg, borderColor: cfg.border }]}>
+                <Feather name={cfg.icon} size={11} color={cfg.iconColor} />
+                <Text style={[styles.statusBadgeText, { color: cfg.textColor }]}>{status}</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Submission details */}
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Submission Details</Text>
+            {[
+              { label: "Reference No.", value: "DEP-2024-10897354-S2" },
+              { label: "Submitted", value: "Jan 15, 2024 at 9:36am" },
+              { label: "Courses", value: "6 courses · 18 credits" },
+              { label: "Document", value: "proof_of_registration_s2.pdf" },
+            ].map((d, i) => (
+              <View key={i} style={[styles.detailRow, i > 0 && styles.detailRowBorder]}>
+                <Text style={styles.detailLabel}>{d.label}</Text>
+                <Text style={styles.detailValue}>{d.value}</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Timeline */}
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Progress Timeline</Text>
+            {TIMELINE.map((step, i) => (
+              <View key={i} style={styles.timelineStep}>
+                <View style={styles.timelineLeft}>
+                  <View style={[styles.timelineDot, step.done ? styles.timelineDotDone : styles.timelineDotPending]}>
+                    {step.done && <Feather name="check" size={10} color={Colors.white} />}
+                  </View>
+                  {i < TIMELINE.length - 1 && (
+                    <View style={[styles.timelineLine, { backgroundColor: step.done ? Colors.deepBlue : "#e5e7eb" }]} />
+                  )}
+                </View>
+                <View style={styles.timelineContent}>
+                  <Text style={[styles.timelineLabel, step.done ? styles.timelineLabelDone : styles.timelineLabelPending]}>
+                    {step.label}
+                  </Text>
+                  <Text style={styles.timelineTime}>{step.time}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </ScrollView>
+      )}
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: Colors.lightGray },
+  header: { backgroundColor: Colors.deepBlue, paddingHorizontal: 20, paddingVertical: 16 },
+  headerTitle: { color: Colors.white, fontSize: 17, fontWeight: "800" },
+  headerSub: { color: "rgba(255,255,255,0.6)", fontSize: 11, marginTop: 2 },
+  subTabBar: { backgroundColor: Colors.white, flexDirection: "row", borderBottomWidth: 1, borderBottomColor: Colors.border, paddingHorizontal: 8 },
+  subTab: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 12, position: "relative" },
+  subTabText: { fontSize: 13, fontWeight: "700", color: Colors.gray400 },
+  subTabTextActive: { color: Colors.deepBlue },
+  subTabIndicator: { position: "absolute", bottom: 0, left: 0, right: 0, height: 2, backgroundColor: Colors.deepBlue },
+  body: { flex: 1 },
+  infoBanner: { backgroundColor: "#eff6ff", borderWidth: 1, borderColor: "#bfdbfe", borderRadius: 16, padding: 14, flexDirection: "row", gap: 10 },
+  infoText: { flex: 1, color: "#1d4ed8", fontSize: 12, lineHeight: 18 },
+  card: { backgroundColor: Colors.white, borderRadius: 20, padding: 16, gap: 12, borderWidth: 1, borderColor: Colors.borderLight },
+  cardHeader: { gap: 2 },
+  cardTitle: { color: Colors.darkText, fontSize: 14, fontWeight: "700" },
+  cardSub: { color: Colors.gray400, fontSize: 11 },
+  dropZone: { borderWidth: 2, borderStyle: "dashed", borderColor: Colors.border, borderRadius: 16, paddingVertical: 32, alignItems: "center", gap: 8 },
+  dropIcon: { width: 48, height: 48, backgroundColor: Colors.lightGray, borderRadius: 16, alignItems: "center", justifyContent: "center" },
+  dropTitle: { color: Colors.deepBlue, fontSize: 14, fontWeight: "700" },
+  dropSub: { color: Colors.gray400, fontSize: 12 },
+  fileRow: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: Colors.lightGray, borderRadius: 12, padding: 12 },
+  fileIcon: { width: 40, height: 40, backgroundColor: Colors.deepBlue, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  fileName: { color: Colors.darkText, fontSize: 13, fontWeight: "600" },
+  fileMeta: { color: Colors.gray400, fontSize: 11, marginTop: 2 },
+  formField: { gap: 4 },
+  formLabel: { color: Colors.gray400, fontSize: 10, fontWeight: "700", letterSpacing: 1.2, textTransform: "uppercase" },
+  formValue: { backgroundColor: Colors.lightGray, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10 },
+  formValueText: { color: Colors.darkText, fontSize: 13 },
+  submitBtn: { backgroundColor: Colors.accentGold, borderRadius: 16, paddingVertical: 16, alignItems: "center" },
+  submitBtnDisabled: { opacity: 0.5 },
+  submitBtnText: { color: Colors.white, fontSize: 14, fontWeight: "700" },
+  statusCard: { borderWidth: 1, borderRadius: 20, padding: 20, alignItems: "center", gap: 12 },
+  statusIconWrap: { width: 64, height: 64, borderRadius: 32, alignItems: "center", justifyContent: "center", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
+  statusTextBlock: { alignItems: "center", gap: 6 },
+  statusHeadline: { fontSize: 16, fontWeight: "800" },
+  statusMessage: { color: Colors.gray500, fontSize: 12, textAlign: "center", lineHeight: 18 },
+  statusBadgeWrap: {},
+  statusBadge: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20, borderWidth: 1 },
+  statusBadgeText: { fontSize: 11, fontWeight: "700" },
+  detailRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 6 },
+  detailRowBorder: { borderTopWidth: 1, borderTopColor: "rgba(21,61,112,0.04)" },
+  detailLabel: { color: Colors.gray400, fontSize: 11, fontWeight: "600" },
+  detailValue: { color: Colors.darkText, fontSize: 11, fontWeight: "700", maxWidth: "60%", textAlign: "right" },
+  timelineStep: { flexDirection: "row", gap: 12 },
+  timelineLeft: { alignItems: "center", width: 24 },
+  timelineDot: { width: 24, height: 24, borderRadius: 12, alignItems: "center", justifyContent: "center", zIndex: 1 },
+  timelineDotDone: { backgroundColor: Colors.deepBlue },
+  timelineDotPending: { backgroundColor: Colors.lightGray, borderWidth: 2, borderColor: "#e5e7eb" },
+  timelineLine: { flex: 1, width: 2, minHeight: 20 },
+  timelineContent: { flex: 1, paddingBottom: 16 },
+  timelineLabel: { fontSize: 12, fontWeight: "700" },
+  timelineLabelDone: { color: Colors.darkText },
+  timelineLabelPending: { color: Colors.gray400 },
+  timelineTime: { color: Colors.gray400, fontSize: 10, marginTop: 2 },
+});
