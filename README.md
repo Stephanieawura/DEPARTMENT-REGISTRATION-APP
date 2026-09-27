@@ -1,14 +1,23 @@
 # UG CS Registration
 
-pnpm monorepo for the UG Computer Science department registration app.
+pnpm monorepo for the UG Computer Science department registration app: students sync their registered courses,
+upload their Proof of Registration, and track departmental clearance; admins review and approve submissions.
 
 ```
 apps/
+  mobile/            Expo SDK 54 / React Native app (the product)
   web/               Vite + React + Tailwind v4 prototype (exported from Figma Make)
-  mobile/            Expo SDK 54 / React Native app
 packages/
   design-tokens/     Shared design tokens + design tooling scripts
+docs/                Architecture, design principles, decisions, project proposal
 ```
+
+## Documentation
+
+- [Architecture](docs/architecture.md): system overview, repo layout, navigation, domain model
+- [Design principles](docs/design-principles.md): brand, tokens, typography, layout and component rules
+- [Decision records](docs/decisions/): why the repo is structured the way it is
+- [Project proposal (PDF)](docs/project/Stephanie_Awrabena_Dunyo_Final_Year_Project_Updated.pdf)
 
 ## Getting started
 
