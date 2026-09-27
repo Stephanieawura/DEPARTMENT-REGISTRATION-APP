@@ -1,0 +1,24 @@
+{
+  "name": "@ug-cs/design-tokens",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Single source of truth for UG CS Registration design tokens (web + mobile).",
+  "main": "./generated/tokens.js",
+  "types": "./generated/tokens.d.ts",
+  "exports": {
+    ".": {
+      "types": "./generated/tokens.d.ts",
+      "default": "./generated/tokens.js"
+    },
+    "./tokens.css": "./generated/tokens.css",
+    "./tokens.json": "./generated/tokens.json"
+  },
+  "files": ["generated", "tokens"],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "watch": "node --watch-path=tokens scripts/build.mjs",
+    "check": "node scripts/build.mjs --check",
+    "lint:colors": "node scripts/lint-colors.mjs"
+  }
+}

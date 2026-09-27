@@ -1,5 +1,4 @@
 node_modules/
-rn-app/node_modules/
 .expo/
 dist/
 build/

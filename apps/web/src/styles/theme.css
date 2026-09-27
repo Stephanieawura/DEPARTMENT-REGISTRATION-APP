@@ -3,37 +3,37 @@
 :root {
   --font-size: 16px;
   --background: #ffffff;
-  --foreground: #1a1a2e;
+  --foreground: var(--ug-color-dark-text);
   --card: #ffffff;
-  --card-foreground: #1a1a2e;
+  --card-foreground: var(--ug-color-dark-text);
   --popover: #ffffff;
-  --popover-foreground: #1a1a2e;
-  --primary: #153D70;
+  --popover-foreground: var(--ug-color-dark-text);
+  --primary: var(--ug-color-deep-blue);
   --primary-foreground: #ffffff;
-  --secondary: #F8F9FA;
-  --secondary-foreground: #153D70;
-  --muted: #F8F9FA;
-  --muted-foreground: #6b7280;
-  --accent: #BA8F4A;
+  --secondary: var(--ug-color-light-gray);
+  --secondary-foreground: var(--ug-color-deep-blue);
+  --muted: var(--ug-color-light-gray);
+  --muted-foreground: var(--ug-color-gray500);
+  --accent: var(--ug-color-accent-gold);
   --accent-foreground: #ffffff;
-  --destructive: #dc2626;
+  --destructive: var(--ug-color-red);
   --destructive-foreground: #ffffff;
-  --border: rgba(21, 61, 112, 0.12);
+  --border: var(--ug-color-border);
   --input: transparent;
-  --input-background: #F8F9FA;
+  --input-background: var(--ug-color-light-gray);
   --switch-background: #cbced4;
-  --font-weight-medium: 500;
-  --font-weight-normal: 400;
-  --ring: #153D70;
-  --ug-deep-blue: #153D70;
-  --ug-accent-gold: #BA8F4A;
-  --ug-light-gray: #F8F9FA;
+  --font-weight-medium: var(--ug-font-weight-medium);
+  --font-weight-normal: var(--ug-font-weight-normal);
+  --ring: var(--ug-color-deep-blue);
+  --ug-deep-blue: var(--ug-color-deep-blue);
+  --ug-accent-gold: var(--ug-color-accent-gold);
+  --ug-light-gray: var(--ug-color-light-gray);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
+  --radius: var(--ug-radius-lg);
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: #030213;
@@ -120,6 +120,19 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* UG brand palette from @ug-cs/design-tokens, e.g. bg-ug-deep-blue, text-ug-accent-gold */
+  --color-ug-deep-blue: var(--ug-color-deep-blue);
+  --color-ug-deep-blue-dark: var(--ug-color-deep-blue-dark);
+  --color-ug-accent-gold: var(--ug-color-accent-gold);
+  --color-ug-accent-gold-dark: var(--ug-color-accent-gold-dark);
+  --color-ug-light-gray: var(--ug-color-light-gray);
+  --color-ug-dark-text: var(--ug-color-dark-text);
+  --color-ug-success: var(--ug-color-emerald);
+  --color-ug-warning: var(--ug-color-amber);
+  --color-ug-danger: var(--ug-color-red);
+  --font-ug-sans: var(--ug-font-family-sans);
+  --font-ug-serif: var(--ug-font-family-serif);
 }
 
 @layer base {

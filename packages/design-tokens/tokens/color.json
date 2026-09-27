@@ -1,0 +1,20 @@
+{
+  "color": {
+    "$type": "color",
+    "deepBlue": { "$value": "#153D70", "$description": "UG primary brand blue" },
+    "deepBlueDark": { "$value": "#0d2845" },
+    "accentGold": { "$value": "#BA8F4A", "$description": "UG accent gold" },
+    "accentGoldDark": { "$value": "#a67d3f" },
+    "white": { "$value": "#FFFFFF" },
+    "lightGray": { "$value": "#F8F9FA" },
+    "darkText": { "$value": "#1a1a2e" },
+    "border": { "$value": "rgba(21, 61, 112, 0.12)" },
+    "borderLight": { "$value": "rgba(21, 61, 112, 0.06)" },
+    "gray300": { "$value": "#d1d5db" },
+    "gray400": { "$value": "#9ca3af" },
+    "gray500": { "$value": "#6b7280" },
+    "emerald": { "$value": "#059669", "$description": "Success / approved" },
+    "amber": { "$value": "#d97706", "$description": "Warning / pending" },
+    "red": { "$value": "#dc2626", "$description": "Error / rejected" }
+  }
+}

@@ -1,2 +1,13 @@
 packages:
-  - '.'
+  - apps/*
+  - packages/*
+
+# Expo/Metro needs a flat node_modules layout
+nodeLinker: hoisted
+
+overrides:
+  vite: 6.3.5
+
+allowBuilds:
+  '@tailwindcss/oxide': true
+  esbuild: true
