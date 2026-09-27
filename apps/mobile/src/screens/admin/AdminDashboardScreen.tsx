@@ -1,5 +1,6 @@
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import StatusBarBackground from "../../components/StatusBarBackground";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -43,7 +44,8 @@ export default function AdminDashboardScreen() {
   ];
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
+    <SafeAreaView style={styles.safe} edges={["left", "right"]}>
+      <StatusBarBackground />
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
           <Text style={styles.headerTop}>University of Ghana · CS Dept</Text>

@@ -8,6 +8,7 @@ import {
   Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import StatusBarBackground from "../../components/StatusBarBackground";
 import { Feather } from "@expo/vector-icons";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../../App";
@@ -34,7 +35,8 @@ export default function CourseDetailsScreen({ route, navigation }: Props) {
   ];
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
+    <SafeAreaView style={styles.safe} edges={["left", "right"]}>
+      <StatusBarBackground />
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>

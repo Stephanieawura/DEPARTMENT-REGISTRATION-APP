@@ -8,6 +8,7 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import StatusBarBackground from "../../components/StatusBarBackground";
 import { Feather } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 import { Colors } from "../../constants/Colors";
@@ -92,7 +93,8 @@ export default function RegistrationScreen() {
   ];
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
+    <SafeAreaView style={styles.safe} edges={["left", "right"]}>
+      <StatusBarBackground />
       <View style={styles.header}>
         <View>
           <Text style={styles.headerTitle}>Registration</Text>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Switch, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import StatusBarBackground from "../../components/StatusBarBackground";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NOTIFICATIONS } from "../../data/sampleData";
@@ -69,7 +70,8 @@ export default function NotificationsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
+    <SafeAreaView style={styles.safe} edges={["left", "right"]}>
+      <StatusBarBackground />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Feather name="chevron-left" size={20} color={Colors.white} />

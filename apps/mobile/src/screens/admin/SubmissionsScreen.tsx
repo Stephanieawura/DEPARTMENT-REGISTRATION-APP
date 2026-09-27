@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import StatusBarBackground from "../../components/StatusBarBackground";
 import { Feather } from "@expo/vector-icons";
 import { SAMPLE_SUBMISSIONS } from "../../data/sampleData";
 import { Colors } from "../../constants/Colors";
@@ -32,7 +33,8 @@ export default function SubmissionsScreen() {
   const FILTERS: FilterStatus[] = ["All", "Pending", "Approved", "Rejected"];
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
+    <SafeAreaView style={styles.safe} edges={["left", "right"]}>
+      <StatusBarBackground />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Submissions</Text>
         <Text style={styles.headerSub}>{filtered.length} records</Text>
