@@ -1,30 +1,50 @@
-import { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
+import { useState, useEffect, useCallback } from "react";
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../../App";
-import { SAMPLE_COURSES } from "../../data/sampleData";
 import { Colors } from "../../constants/Colors";
+import api from "../../api";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 export default function CoursesScreen() {
   const navigation = useNavigation<Nav>();
-  const [synced, setSynced] = useState(true);
-  const [syncing, setSyncing] = useState(false);
+  const [courses, setCourses] = useState<any[]>([]);
+  const [syncing, setSyncing] = useState(true);
+  const [lastSynced, setLastSynced] = useState<Date | null>(null);
 
-  function handleSync() {
+  const fetchCourses = async () => {
     setSyncing(true);
-    setTimeout(() => { setSyncing(false); setSynced(true); }, 1500);
-  }
+    try {
+      // Fetch paginated courses from our NestJS backend
+      const response = await api.get('/courses?limit=50');
+      setCourses(response.data.data);
+      setLastSynced(new Date());
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+      Alert.alert('Error', 'Could not load courses from the server.');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  // Fetch when screen loads
+  useFocusEffect(
+    useCallback(() => {
+      fetchCourses();
+    }, [])
+  );
+
+  const totalCredits = courses.reduce((sum, course) => sum + (course.credits || 0), 0);
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>My Courses</Text>
+          <Text style={styles.headerTitle}>Available Courses</Text>
           <Text style={styles.headerSub}>Semester 2 · 2023/2024</Text>
         </View>
         <TouchableOpacity style={styles.bellBtn}>
@@ -43,10 +63,12 @@ export default function CoursesScreen() {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.syncTitle}>MISWeb Sync</Text>
-            <Text style={styles.syncSub}>{synced ? "Last synced: Today 9:32am" : "Not yet synced"}</Text>
+            <Text style={styles.syncSub}>
+              {lastSynced ? `Last synced: ${lastSynced.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` : "Not yet synced"}
+            </Text>
           </View>
           <TouchableOpacity
-            onPress={handleSync}
+            onPress={fetchCourses}
             disabled={syncing}
             style={[styles.syncBtn, syncing && { opacity: 0.6 }]}
           >
@@ -54,20 +76,22 @@ export default function CoursesScreen() {
           </TouchableOpacity>
         </View>
 
-        {synced && (
+        {!syncing && courses.length === 0 ? (
+          <Text style={{ textAlign: 'center', marginTop: 20, color: Colors.gray500 }}>No courses available.</Text>
+        ) : (
           <>
             <View style={styles.countRow}>
-              <Text style={styles.sectionTitle}>Registered Courses</Text>
+              <Text style={styles.sectionTitle}>Course Catalog</Text>
               <View style={styles.countBadge}>
-                <Text style={styles.countText}>{SAMPLE_COURSES.length} courses · 18 credits</Text>
+                <Text style={styles.countText}>{courses.length} courses</Text>
               </View>
             </View>
 
-            {SAMPLE_COURSES.map((course, i) => (
+            {courses.map((course, i) => (
               <TouchableOpacity
-                key={i}
+                key={course.id || i}
                 style={styles.courseCard}
-                onPress={() => navigation.navigate("CourseDetails", { course, isRegistered: true })}
+                onPress={() => navigation.navigate("CourseDetails", { course, isRegistered: false })}
                 activeOpacity={0.8}
               >
                 <View style={styles.courseCodeBox}>

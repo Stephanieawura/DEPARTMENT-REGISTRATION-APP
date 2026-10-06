@@ -9,41 +9,57 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../App";
 import { Colors } from "../constants/Colors";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import api from "../api";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
 export default function LoginScreen({ navigation }: Props) {
   const [email, setEmail] = useState("");
-  const [idNumber, setIdNumber] = useState("");
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState("");
-  const [sentEmail, setSentEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  function handleSendOTP() {
-    if (!email || !idNumber) {
-      Alert.alert("Missing Fields", "Please enter both email and ID number.");
+  async function handleLogin() {
+    if (!email || !password) {
+      Alert.alert("Missing Fields", "Please enter both email and password.");
       return;
     }
-    setSentEmail(email);
-    setOtpSent(true);
-  }
 
-  function handleVerifyOTP() {
-    if (otp.length !== 6) {
-      Alert.alert("Invalid OTP", "Please enter the 6-digit OTP.");
-      return;
-    }
-    if (otp === "123456") {
-      navigation.replace(isAdmin ? "AdminApp" : "StudentApp");
-    } else {
-      Alert.alert("Invalid OTP", "Try '123456' for demo purposes.");
+    setIsLoading(true);
+    try {
+      const response = await api.post('/auth/login', {
+        email: email.trim(),
+        password: password,
+      });
+
+      const { access_token, user } = response.data;
+
+      // Store token and user role
+      await AsyncStorage.setItem('userToken', access_token);
+      await AsyncStorage.setItem('userRole', user.role);
+      await AsyncStorage.setItem('userId', user.sub.toString());
+
+      if (user.role === 'ADMIN') {
+        navigation.replace("AdminApp");
+      } else {
+        navigation.replace("StudentApp");
+      }
+    } catch (error: any) {
+      console.error(error);
+      Alert.alert(
+        "Login Failed", 
+        error.response?.data?.message || "Invalid credentials. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -64,126 +80,65 @@ export default function LoginScreen({ navigation }: Props) {
 
         <ScrollView style={styles.body} contentContainerStyle={{ paddingBottom: 40 }}>
           <View style={styles.card}>
-            {!otpSent ? (
-              <>
-                {/* Role toggle */}
-                <View style={styles.roleToggle}>
-                  {["Student", "Admin"].map((role) => {
-                    const active = (role === "Admin") === isAdmin;
-                    return (
-                      <TouchableOpacity
-                        key={role}
-                        onPress={() => setIsAdmin(role === "Admin")}
-                        style={[styles.roleBtn, active && styles.roleBtnActive]}
-                        activeOpacity={0.8}
-                      >
-                        <Text style={[styles.roleBtnText, active && styles.roleBtnTextActive]}>
-                          {role}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
+            <View style={styles.field}>
+              <Text style={styles.label}>Email Address</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="student@st.ug.edu.gh"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                placeholderTextColor={Colors.gray400}
+              />
+            </View>
 
-                <View style={styles.field}>
-                  <Text style={styles.label}>Email Address</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder={isAdmin ? "staff@ug.edu.gh" : "student@st.ug.edu.gh"}
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    placeholderTextColor={Colors.gray400}
-                  />
-                </View>
-
-                <View style={styles.field}>
-                  <Text style={styles.label}>{isAdmin ? "Staff ID" : "Student ID"}</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder={isAdmin ? "STAFF-001" : "10897354"}
-                    value={idNumber}
-                    onChangeText={setIdNumber}
-                    placeholderTextColor={Colors.gray400}
-                  />
-                </View>
-
-                <TouchableOpacity
-                  style={styles.primaryBtn}
-                  onPress={handleSendOTP}
-                  activeOpacity={0.85}
+            <View style={styles.field}>
+              <Text style={styles.label}>Password</Text>
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  style={[styles.input, styles.passwordInput]}
+                  placeholder="••••••••"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  placeholderTextColor={Colors.gray400}
+                />
+                <TouchableOpacity 
+                  style={styles.eyeIcon} 
+                  onPress={() => setShowPassword(!showPassword)}
                 >
-                  <Text style={styles.primaryBtnText}>Send OTP</Text>
+                  <Feather name={showPassword ? "eye" : "eye-off"} size={20} color={Colors.gray400} />
                 </TouchableOpacity>
+              </View>
+            </View>
 
-                <Text style={styles.helpText}>
-                  Need help?{" "}
-                  <Text style={styles.helpLink}>Contact Admin</Text>
-                </Text>
-              </>
-            ) : (
-              <>
-                <TouchableOpacity
-                  onPress={() => setOtpSent(false)}
-                  style={styles.backBtn}
-                >
-                  <Feather name="chevron-left" size={18} color={Colors.deepBlue} />
-                  <Text style={styles.backText}>Back</Text>
-                </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.primaryBtn}
+              onPress={handleLogin}
+              activeOpacity={0.85}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator color={Colors.white} />
+              ) : (
+                <Text style={styles.primaryBtnText}>Sign In</Text>
+              )}
+            </TouchableOpacity>
 
-                <View style={styles.otpHeader}>
-                  <View style={styles.mailIcon}>
-                    <Feather name="mail" size={28} color={Colors.accentGold} />
-                  </View>
-                  <Text style={styles.otpTitle}>Verify Your Email</Text>
-                  <Text style={styles.otpSubtitle}>
-                    {"We've sent a 6-digit code to"}
-                    {"\n"}
-                    <Text style={styles.otpEmail}>{sentEmail}</Text>
-                  </Text>
-                </View>
+            <Text style={styles.helpText}>
+              Need help?{" "}
+              <Text style={styles.helpLink}>Contact Admin</Text>
+            </Text>
 
-                <View style={styles.field}>
-                  <Text style={styles.label}>Enter OTP Code</Text>
-                  <TextInput
-                    style={[styles.input, styles.otpInput]}
-                    placeholder="000000"
-                    value={otp}
-                    onChangeText={(t) => setOtp(t.replace(/\D/g, "").slice(0, 6))}
-                    keyboardType="number-pad"
-                    maxLength={6}
-                    placeholderTextColor={Colors.gray400}
-                  />
-                </View>
-
-                <TouchableOpacity
-                  style={styles.primaryBtn}
-                  onPress={handleVerifyOTP}
-                  activeOpacity={0.85}
-                >
-                  <Text style={styles.primaryBtnText}>Verify &amp; Sign In</Text>
-                </TouchableOpacity>
-
-                <Text style={styles.helpText}>
-                  {"Didn't receive code? "}
-                  <Text
-                    style={styles.helpLink}
-                    onPress={() => Alert.alert("OTP Resent", `Code resent to ${sentEmail}`)}
-                  >
-                    Resend OTP
-                  </Text>
-                </Text>
-
-                <View style={styles.demoBanner}>
-                  <Text style={styles.demoText}>
-                    <Text style={{ fontWeight: "700" }}>Demo Mode: </Text>
-                    Use code{" "}
-                    <Text style={{ fontFamily: "monospace", fontWeight: "700" }}>123456</Text>
-                  </Text>
-                </View>
-              </>
-            )}
+            <View style={styles.demoBanner}>
+              <Text style={styles.demoText}>
+                <Text style={{ fontWeight: "700" }}>Demo Credentials:{"\n"}</Text>
+                Student: student@dept.edu / password123{"\n"}
+                Admin: admin@dept.edu / password123
+              </Text>
+            </View>
           </View>
 
           <Text style={styles.footer}>Department of Computer Science · UG</Text>
@@ -236,22 +191,6 @@ const styles = StyleSheet.create({
     elevation: 4,
     gap: 16,
   },
-  roleToggle: {
-    flexDirection: "row",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    overflow: "hidden",
-  },
-  roleBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: "center",
-    backgroundColor: Colors.white,
-  },
-  roleBtnActive: { backgroundColor: Colors.deepBlue },
-  roleBtnText: { color: Colors.deepBlue, fontSize: 14, fontWeight: "700" },
-  roleBtnTextActive: { color: Colors.white },
   field: { gap: 6 },
   label: {
     color: Colors.deepBlue,
@@ -268,42 +207,38 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.darkText,
   },
-  otpInput: {
-    textAlign: "center",
-    letterSpacing: 10,
-    fontSize: 20,
-    fontWeight: "700",
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.lightGray,
+    borderRadius: 12,
+  },
+  passwordInput: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  eyeIcon: {
+    paddingHorizontal: 16,
+    paddingVertical: 13,
   },
   primaryBtn: {
     backgroundColor: Colors.accentGold,
     borderRadius: 16,
     paddingVertical: 14,
     alignItems: "center",
+    marginTop: 8,
   },
   primaryBtnText: { color: Colors.white, fontSize: 14, fontWeight: "700" },
   helpText: { textAlign: "center", fontSize: 12, color: Colors.gray400 },
   helpLink: { color: Colors.deepBlue, fontWeight: "700" },
-  backBtn: { flexDirection: "row", alignItems: "center", gap: 4, marginBottom: -4 },
-  backText: { color: Colors.deepBlue, fontSize: 14, fontWeight: "700" },
-  otpHeader: { alignItems: "center", gap: 8 },
-  mailIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "rgba(186,143,74,0.1)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  otpTitle: { color: Colors.deepBlue, fontSize: 16, fontWeight: "800" },
-  otpSubtitle: { color: Colors.gray500, fontSize: 12, textAlign: "center", lineHeight: 18 },
-  otpEmail: { color: Colors.deepBlue, fontWeight: "700" },
   demoBanner: {
     backgroundColor: "#fffbeb",
     borderWidth: 1,
     borderColor: "#fde68a",
     borderRadius: 12,
     padding: 12,
+    marginTop: 8,
   },
-  demoText: { color: "#92400e", fontSize: 12, textAlign: "center" },
+  demoText: { color: "#92400e", fontSize: 12, textAlign: "center", lineHeight: 18 },
   footer: { textAlign: "center", color: Colors.gray400, fontSize: 11, marginTop: 20 },
 });

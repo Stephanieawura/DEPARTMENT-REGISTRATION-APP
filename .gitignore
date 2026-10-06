@@ -1,6 +1,23 @@
+# Dependencies
 node_modules/
-rn-app/node_modules/
+
+# Expo / React Native
 .expo/
+rn-app/node_modules/
+
+# Builds
 dist/
 build/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs and OS
+*.log
 .DS_Store
+
+# Coverage
+coverage/
+.nyc_output/

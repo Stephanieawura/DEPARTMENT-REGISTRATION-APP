@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: department_registration_db
+    environment:
+      POSTGRES_USER: johndoe
+      POSTGRES_PASSWORD: randompassword
+      POSTGRES_DB: mydb
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  api:
+    build: .
+    container_name: department_registration_api
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://johndoe:randompassword@postgres:5432/mydb?schema=public
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm run start:dev
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
