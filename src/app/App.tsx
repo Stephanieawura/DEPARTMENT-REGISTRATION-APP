@@ -21,6 +21,7 @@ import {
   Users,
   Lock,
   Smartphone,
+  Monitor,
   HelpCircle,
   ChevronDown,
   Mail,
@@ -46,6 +47,7 @@ type Screen =
   | "adminReview";
 
 type StudentTab = "home" | "courses" | "registration" | "profile";
+type AdminTab = "overview" | "submissions" | "students" | "settings";
 type RegistrationSubTab = "upload" | "status";
 type VerificationStatus = "Pending" | "Approved" | "Rejected";
 
@@ -297,31 +299,306 @@ function UGCrest({ size = 48, dark = false }: { size?: number; dark?: boolean })
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// Phone frame wrapper
 // ────────────────────────────────────────────────────────────────────────────
-function PhoneFrame({ children }: { children: React.ReactNode }) {
+// ────────────────────────────────────────────────────────────────────────────
+// University Web Portal Layout
+// ────────────────────────────────────────────────────────────────────────────
+function WebPortalLayout({
+  children,
+  screen,
+  onNavigate,
+  onLogout,
+  studentTab = "home",
+  onStudentTabChange,
+  adminTab = "overview",
+  onAdminTabChange,
+}: {
+  children: React.ReactNode;
+  screen: Screen;
+  onNavigate: (s: Screen) => void;
+  onLogout: () => void;
+  studentTab?: StudentTab;
+  onStudentTabChange?: (t: StudentTab) => void;
+  adminTab?: AdminTab;
+  onAdminTabChange?: (t: AdminTab) => void;
+}) {
+  const isAdmin = screen.startsWith("admin");
+  const isAuth = screen === "splash" || screen === "login";
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0d2845] via-[#153D70] to-[#1a4d8f] flex items-center justify-center p-4">
-      <div className="relative w-[390px] h-[844px] bg-white rounded-[48px] shadow-2xl overflow-hidden border-4 border-[#1a1a2e] flex flex-col">
-        {/* Status bar */}
-        <div className="h-10 bg-[#153D70] flex items-center justify-between px-8 shrink-0">
-          <span className="text-white text-xs font-medium">9:41</span>
-          <div className="flex gap-1 items-center">
-            <div className="flex gap-0.5 items-end">
-              <div className="w-1 h-2 bg-white rounded-sm opacity-60" />
-              <div className="w-1 h-2.5 bg-white rounded-sm opacity-80" />
-              <div className="w-1 h-3 bg-white rounded-sm" />
+    <div className="min-h-screen min-h-[100dvh] w-full max-w-full bg-[#F8FAFC] text-[#1a1a2e] flex flex-col font-sans antialiased selection:bg-[#BA8F4A] selection:text-white overflow-x-hidden">
+      {/* 1. Global University Top Header */}
+      <header className="bg-[#153D70] border-b-2 border-[#BA8F4A] shadow-md sticky top-0 z-50 w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[56px] sm:h-16 py-2 flex items-center justify-between gap-2">
+          {/* Logo & University Title */}
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 border border-[#BA8F4A]/60 flex items-center justify-center shadow-inner shrink-0">
+              <GraduationCap size={20} color="#BA8F4A" />
             </div>
-            <svg width="16" height="10" viewBox="0 0 16 10" fill="white" className="ml-0.5">
-              <rect x="0" y="3" width="14" height="7" rx="2" stroke="white" strokeWidth="1.2" fill="none" />
-              <rect x="14.5" y="4.5" width="1.5" height="4" rx="0.75" fill="white" />
-              <rect x="1" y="4" width="10" height="5" rx="1" fill="white" />
-            </svg>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="text-white font-extrabold text-xs sm:text-base tracking-tight truncate">
+                  UNIVERSITY OF GHANA
+                </span>
+                <span className="text-[9px] sm:text-[10px] font-bold tracking-wider px-1.5 sm:px-2 py-0.5 rounded-full bg-[#BA8F4A] text-white shrink-0">
+                  DCSIT
+                </span>
+              </div>
+              <p className="text-white/70 text-[10px] sm:text-xs font-medium truncate hidden sm:block">
+                Department of Computer Science &amp; IT · Course Registration Portal
+              </p>
+            </div>
+          </div>
+
+          {/* Right actions */}
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+            <div className="hidden md:flex items-center gap-2 text-white/80 text-xs bg-white/10 px-3 py-1.5 rounded-lg border border-white/10">
+              <Clock size={13} className="text-[#BA8F4A]" />
+              <span>Semester 2 · 2023/2024</span>
+            </div>
+
+            {!isAuth && (
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="hidden lg:flex items-center gap-2 text-right">
+                  <div>
+                    <p className="text-xs font-bold text-white">
+                      {isAdmin ? "Dr. K. Acheampong" : "Stephanie A. Dunyo"}
+                    </p>
+                    <p className="text-[11px] text-[#BA8F4A] font-medium">
+                      {isAdmin ? "Dept. Administrator" : "BSc IT · Level 300"}
+                    </p>
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-[#BA8F4A] text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                    {isAdmin ? "KA" : "SD"}
+                  </div>
+                </div>
+
+                <button
+                  onClick={onLogout}
+                  className="flex items-center gap-1.5 text-xs font-semibold bg-white/10 hover:bg-white/20 text-white px-2.5 sm:px-3 py-1.5 rounded-lg transition-colors border border-white/10 shrink-0"
+                  title="Sign out of your account"
+                >
+                  <LogOut size={14} />
+                  <span className="hidden sm:inline">Sign Out</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
-        {/* Screen content */}
-        <div className="flex-1 overflow-hidden flex flex-col">{children}</div>
-      </div>
+      </header>
+
+      {/* 2. Main Portal Area: Auth screen (centered) or Desktop Sidebar + Main Content */}
+      {isAuth ? (
+        <main className="flex-1 w-full max-w-full flex flex-col justify-start py-4 sm:py-10">
+          {children}
+        </main>
+      ) : (
+        <div className="max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 flex-1 flex flex-col md:flex-row gap-6 items-start">
+          {/* Desktop Sidebar Navigation (replaces top bar & bottom bar on desktop) */}
+          <aside className="hidden md:flex w-72 lg:w-80 shrink-0 sticky top-20 self-start bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex-col gap-5 max-h-[calc(100vh-6rem)] overflow-y-auto">
+            {/* User Profile Summary */}
+            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#153D70] flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">
+                {isAdmin ? "KA" : "SD"}
+              </div>
+              <div className="min-w-0 flex-1 text-left">
+                <p className="text-xs font-bold text-[#1a1a2e] truncate">
+                  {isAdmin ? "Dr. K. Acheampong" : "Stephanie A. Dunyo"}
+                </p>
+                <p className="text-[11px] text-[#BA8F4A] font-medium truncate">
+                  {isAdmin ? "Administrator" : "10897354 · Level 300"}
+                </p>
+              </div>
+            </div>
+
+            {/* Main Navigation Menu */}
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3.5 mb-2 text-left">
+                {isAdmin ? "Admin Navigation" : "Portal Navigation"}
+              </p>
+              <nav className="space-y-1">
+                {isAdmin ? (
+                  // Admin Sidebar Links
+                  <>
+                    {[
+                      { id: "overview" as AdminTab, label: "Dashboard", icon: <Home size={18} /> },
+                      { id: "submissions" as AdminTab, label: "Submissions", icon: <FileText size={18} />, badge: "2" },
+                      { id: "students" as AdminTab, label: "Student Directory", icon: <Users size={18} /> },
+                      { id: "settings" as AdminTab, label: "System Settings", icon: <Shield size={18} /> },
+                    ].map((item) => {
+                      const active = screen === "adminDashboard" && adminTab === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => {
+                            onAdminTabChange?.(item.id);
+                            onNavigate("adminDashboard");
+                          }}
+                          className={`w-full flex items-center px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
+                            active
+                              ? "bg-[#153D70] text-white shadow-sm"
+                              : "text-slate-600 hover:text-[#153D70] hover:bg-slate-100/80"
+                          }`}
+                        >
+                          <span className={`w-5 h-5 flex items-center justify-center shrink-0 ${active ? "text-[#BA8F4A]" : "text-slate-400"}`}>
+                            {item.icon}
+                          </span>
+                          <span className="ml-3 truncate whitespace-nowrap text-left flex-1 min-w-0">
+                            {item.label}
+                          </span>
+                          {item.badge && (
+                            <span
+                              className={`shrink-0 ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                active ? "bg-[#BA8F4A] text-white" : "bg-amber-100 text-amber-800"
+                              }`}
+                            >
+                              {item.badge}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </>
+                ) : (
+                  // Student Sidebar Links
+                  <>
+                    {[
+                      { id: "home" as StudentTab, label: "Home / Overview", icon: <Home size={18} /> },
+                      { id: "courses" as StudentTab, label: "Registered Courses", icon: <BookOpen size={18} />, badge: "6" },
+                      { id: "registration" as StudentTab, label: "Registration & Clearance", icon: <ClipboardList size={18} />, badge: "Pending" },
+                      { id: "profile" as StudentTab, label: "Student Profile", icon: <User size={18} /> },
+                    ].map((item) => {
+                      const isCurrent =
+                        (screen === `student${item.id.charAt(0).toUpperCase() + item.id.slice(1)}`) ||
+                        (screen === "courseDetails" && item.id === "courses") ||
+                        (screen.startsWith("student") && studentTab === item.id);
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => {
+                            onStudentTabChange?.(item.id);
+                            onNavigate(`student${item.id.charAt(0).toUpperCase() + item.id.slice(1)}` as Screen);
+                          }}
+                          className={`w-full flex items-center px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
+                            isCurrent
+                              ? "bg-[#153D70] text-white shadow-sm"
+                              : "text-slate-600 hover:text-[#153D70] hover:bg-slate-100/80"
+                          }`}
+                        >
+                          <span className={`w-5 h-5 flex items-center justify-center shrink-0 ${isCurrent ? "text-[#BA8F4A]" : "text-slate-400"}`}>
+                            {item.icon}
+                          </span>
+                          <span className="ml-3 truncate whitespace-nowrap text-left flex-1 min-w-0">
+                            {item.label}
+                          </span>
+                          {item.badge && (
+                            <span
+                              className={`shrink-0 ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                isCurrent
+                                  ? "bg-[#BA8F4A] text-white"
+                                  : item.badge === "Pending"
+                                  ? "bg-amber-100 text-amber-800"
+                                  : "bg-blue-100 text-[#153D70]"
+                              }`}
+                            >
+                              {item.badge}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </>
+                )}
+              </nav>
+            </div>
+
+            {/* Student Quick Links */}
+            {!isAdmin && (
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3.5 mb-2 text-left">
+                  Account &amp; Support
+                </p>
+                <nav className="space-y-1">
+                  {[
+                    { screen: "notifications" as Screen, label: "Notifications", icon: <Bell size={18} />, badge: "3" },
+                    { screen: "privacy" as Screen, label: "Privacy & Security", icon: <Shield size={18} /> },
+                    { screen: "helpSupport" as Screen, label: "Help & Support", icon: <HelpCircle size={18} /> },
+                  ].map((link) => {
+                    const active = screen === link.screen;
+                    return (
+                      <button
+                        key={link.screen}
+                        onClick={() => onNavigate(link.screen)}
+                        className={`w-full flex items-center px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
+                          active
+                            ? "bg-[#153D70] text-white shadow-sm"
+                            : "text-slate-600 hover:text-[#153D70] hover:bg-slate-100/80"
+                        }`}
+                      >
+                        <span className={`w-5 h-5 flex items-center justify-center shrink-0 ${active ? "text-[#BA8F4A]" : "text-slate-400"}`}>
+                          {link.icon}
+                        </span>
+                        <span className="ml-3 truncate whitespace-nowrap text-left flex-1 min-w-0">
+                          {link.label}
+                        </span>
+                        {link.badge && (
+                          <span
+                            className={`shrink-0 ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                              active ? "bg-[#BA8F4A] text-white" : "bg-[#BA8F4A]/15 text-[#BA8F4A]"
+                            }`}
+                          >
+                            {link.badge}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </nav>
+              </div>
+            )}
+
+            {/* Bottom Support Widget & Sign Out */}
+            <div className="pt-4 border-t border-slate-100 space-y-3 mt-auto">
+              <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100/80 text-left">
+                <p className="text-[11px] font-bold text-[#153D70]">DCSIT Help Desk</p>
+                <p className="text-[10px] text-slate-500 mt-0.5">Room CS-102 · Mon–Fri 8am–5pm</p>
+                <p className="text-[10px] text-blue-700 font-semibold mt-1">cs@ug.edu.gh</p>
+              </div>
+
+              <button
+                onClick={onLogout}
+                className="w-full flex items-center px-3.5 py-2.5 text-xs font-semibold text-red-600 hover:text-red-700 hover:bg-red-50/80 rounded-xl transition-colors border border-red-200/60"
+              >
+                <span className="w-5 h-5 flex items-center justify-center shrink-0 text-red-500">
+                  <LogOut size={18} />
+                </span>
+                <span className="ml-3 truncate whitespace-nowrap text-left flex-1 min-w-0">Sign Out</span>
+              </button>
+            </div>
+          </aside>
+
+          {/* Main Content Area */}
+          <main className="flex-1 w-full min-w-0">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden w-full flex flex-col">
+              {children}
+            </div>
+          </main>
+        </div>
+      )}
+
+      {/* 3. Global University Footer */}
+      <footer className="bg-[#0B192C] text-white/60 text-xs py-5 border-t border-white/10 mt-auto w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-3 text-center sm:text-left">
+          <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2">
+            <span className="font-semibold text-white">University of Ghana</span>
+            <span>·</span>
+            <span>Department of Computer Science &amp; IT</span>
+          </div>
+          <p className="text-white/40 text-center sm:text-right">
+            &copy; 2024 University of Ghana. Course Registration &amp; Clearance Portal.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
@@ -404,132 +681,213 @@ function LoginScreen({
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-[#F8F9FA]">
-      <div className="bg-[#153D70] pt-4 pb-10 px-6 flex flex-col items-center">
-        <div className="w-16 h-16 rounded-full bg-white/10 border-2 border-[#BA8F4A] flex items-center justify-center mb-3">
-          <GraduationCap size={36} color="#BA8F4A" />
-        </div>
-        <p className="text-[#BA8F4A] text-xs font-semibold tracking-widest uppercase">University of Ghana</p>
-        <h2 className="text-white text-lg font-bold mt-0.5">CS Dept. Registration</h2>
-      </div>
+    <div className="w-full max-w-5xl mx-auto px-3 sm:px-4 py-2 sm:py-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        {/* Left Column: Department clearance overview & guidelines */}
+        <div className="hidden lg:flex lg:col-span-7 bg-[#153D70] rounded-3xl p-8 text-white flex-col justify-between shadow-xl relative overflow-hidden min-h-[520px]">
+          <div className="absolute -right-16 -bottom-16 w-64 h-64 rounded-full bg-white/5 pointer-events-none" />
+          <div className="absolute -left-10 -top-10 w-48 h-48 rounded-full bg-[#BA8F4A]/10 pointer-events-none" />
 
-      <div className="flex-1 px-6 -mt-6">
-        <div className="bg-white rounded-3xl shadow-lg p-6 space-y-4">
-          {!otpSent ? (
-            <>
-              <div className="flex rounded-xl overflow-hidden border border-[rgba(21,61,112,0.12)] mb-2">
-                {["Student", "Admin"].map((role) => (
-                  <button
-                    key={role}
-                    onClick={() => setIsAdmin(role === "Admin")}
-                    className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${
-                      (role === "Admin") === isAdmin
-                        ? "bg-[#153D70] text-white"
-                        : "bg-white text-[#153D70]"
-                    }`}
-                  >
-                    {role}
-                  </button>
-                ))}
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-14 h-14 rounded-2xl bg-white/10 border-2 border-[#BA8F4A] flex items-center justify-center shadow-inner">
+                <GraduationCap size={32} color="#BA8F4A" />
               </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-[#153D70] uppercase tracking-wider">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  placeholder={isAdmin ? "staff@ug.edu.gh" : "student@st.ug.edu.gh"}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 bg-[#F8F9FA] rounded-xl text-sm text-[#1a1a2e] placeholder-gray-400 border border-transparent focus:border-[#153D70] focus:outline-none transition-colors"
-                />
+              <div>
+                <p className="text-[#BA8F4A] text-xs font-bold tracking-widest uppercase">University of Ghana</p>
+                <h1 className="text-white text-2xl font-bold">DCSIT Clearance Portal</h1>
               </div>
+            </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-[#153D70] uppercase tracking-wider">
-                  {isAdmin ? "Staff ID Number" : "Student ID Number"}
-                </label>
-                <input
-                  type="text"
-                  placeholder={isAdmin ? "e.g. STAFF-001" : "e.g. 10897354"}
-                  value={idNumber}
-                  onChange={(e) => setIdNumber(e.target.value)}
-                  className="w-full px-4 py-3 bg-[#F8F9FA] rounded-xl text-sm text-[#1a1a2e] placeholder-gray-400 border border-transparent focus:border-[#153D70] focus:outline-none transition-colors"
-                />
-              </div>
+            <h2 className="text-lg font-bold text-white mb-2">
+              Course Registration &amp; Verification System
+            </h2>
+            <p className="text-white/80 text-sm leading-relaxed mb-6">
+              Welcome to the departmental verification and clearance system for the Department of Computer Science &amp; IT. Submit your MISWeb proof of registration to receive official departmental clearance.
+            </p>
 
-              <PrimaryButton onClick={handleSendOTP} className="mt-1">
-                Send OTP
-              </PrimaryButton>
-
-              <p className="text-center text-xs text-gray-400 pt-1">
-                Need help?{" "}
-                <span className="text-[#153D70] font-semibold">Contact Admin</span>
-              </p>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={() => setOtpSent(false)}
-                className="flex items-center gap-2 text-[#153D70] text-sm font-semibold -mt-2"
-              >
-                <ChevronDown size={16} className="rotate-90" />
-                Back
-              </button>
-
-              <div className="text-center py-2">
-                <div className="w-14 h-14 rounded-full bg-[#BA8F4A]/10 flex items-center justify-center mx-auto mb-3">
-                  <Mail size={28} color="#BA8F4A" />
+            <div className="space-y-3 mb-6">
+              <div className="flex items-start gap-3 bg-white/10 p-3 rounded-2xl border border-white/10">
+                <div className="w-6 h-6 rounded-full bg-[#BA8F4A] text-white flex items-center justify-center font-bold text-xs shrink-0">1</div>
+                <div>
+                  <p className="text-xs font-bold text-white">Sync Registered Courses</p>
+                  <p className="text-[11px] text-white/70">Fetch official course records directly from the UG MISWeb portal.</p>
                 </div>
-                <h3 className="text-[#153D70] font-bold text-base mb-1">Verify Your Email</h3>
-                <p className="text-xs text-gray-500">
-                  We've sent a 6-digit code to
-                  <br />
-                  <span className="font-semibold text-[#153D70]">{sentEmail}</span>
-                </p>
               </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-[#153D70] uppercase tracking-wider">
-                  Enter OTP Code
-                </label>
-                <input
-                  type="text"
-                  placeholder="000000"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                  maxLength={6}
-                  className="w-full px-4 py-3 bg-[#F8F9FA] rounded-xl text-sm text-[#1a1a2e] placeholder-gray-400 border border-transparent focus:border-[#153D70] focus:outline-none transition-colors text-center tracking-[0.5em] font-semibold text-lg"
-                />
+              <div className="flex items-start gap-3 bg-white/10 p-3 rounded-2xl border border-white/10">
+                <div className="w-6 h-6 rounded-full bg-[#BA8F4A] text-white flex items-center justify-center font-bold text-xs shrink-0">2</div>
+                <div>
+                  <p className="text-xs font-bold text-white">Upload Proof of Registration</p>
+                  <p className="text-[11px] text-white/70">Upload your signed or downloaded MISWeb registration slip (PDF).</p>
+                </div>
               </div>
-
-              <PrimaryButton onClick={handleVerifyOTP} className="mt-1">
-                Verify & Sign In
-              </PrimaryButton>
-
-              <p className="text-center text-xs text-gray-400 pt-1">
-                Didn't receive code?{" "}
-                <button
-                  onClick={handleResendOTP}
-                  className="text-[#153D70] font-semibold"
-                >
-                  Resend OTP
-                </button>
-              </p>
-
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mt-2">
-                <p className="text-xs text-amber-800 text-center">
-                  <span className="font-semibold">Demo Mode:</span> Use code <span className="font-mono font-bold">123456</span>
-                </p>
+              <div className="flex items-start gap-3 bg-white/10 p-3 rounded-2xl border border-white/10">
+                <div className="w-6 h-6 rounded-full bg-[#BA8F4A] text-white flex items-center justify-center font-bold text-xs shrink-0">3</div>
+                <div>
+                  <p className="text-xs font-bold text-white">Track Clearance Decision</p>
+                  <p className="text-[11px] text-white/70">Receive real-time verification approvals or administrative feedback.</p>
+                </div>
               </div>
-            </>
-          )}
+            </div>
+          </div>
+
+          <div className="relative z-10 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-white/60">
+            <span>Semester 2 · 2023/2024</span>
+            <span className="text-[#BA8F4A] font-semibold">DCSIT Building · Room CS-102</span>
+          </div>
         </div>
 
-        <p className="text-center text-xs text-gray-400 mt-5">
-          Department of Computer Science · UG
-        </p>
+        {/* Right Column: Portal Sign-In Card */}
+        <div className="w-full lg:col-span-5 max-w-md mx-auto">
+          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-slate-200/80 p-5 sm:p-8 space-y-4">
+            <div className="text-center lg:text-left">
+              <div className="lg:hidden w-14 h-14 rounded-2xl bg-[#153D70] border-2 border-[#BA8F4A] flex items-center justify-center mx-auto mb-3">
+                <GraduationCap size={28} color="#BA8F4A" />
+              </div>
+              <h2 className="text-xl font-bold text-[#153D70]">Portal Sign In</h2>
+              <p className="text-xs text-gray-500 mt-0.5">Enter your institutional credentials to access your portal</p>
+            </div>
+
+            {/* Quick Demo Fill Buttons */}
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAdmin(false);
+                  setEmail("student@st.ug.edu.gh");
+                  setIdNumber("10897354");
+                }}
+                className="py-1.5 px-2 bg-blue-50 hover:bg-blue-100 text-[#153D70] text-[10px] sm:text-[11px] font-semibold rounded-xl border border-blue-200 transition-colors text-center truncate"
+              >
+                ⚡ Student Demo
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAdmin(true);
+                  setEmail("admin@ug.edu.gh");
+                  setIdNumber("STAFF-001");
+                }}
+                className="py-1.5 px-2 bg-amber-50 hover:bg-amber-100 text-amber-800 text-[10px] sm:text-[11px] font-semibold rounded-xl border border-amber-200 transition-colors text-center truncate"
+              >
+                ⚡ Admin Demo
+              </button>
+            </div>
+
+            {!otpSent ? (
+              <>
+                <div className="flex rounded-xl overflow-hidden border border-[rgba(21,61,112,0.12)] mb-2">
+                  {["Student", "Admin"].map((role) => (
+                    <button
+                      key={role}
+                      onClick={() => setIsAdmin(role === "Admin")}
+                      className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${
+                        (role === "Admin") === isAdmin
+                          ? "bg-[#153D70] text-white"
+                          : "bg-white text-[#153D70]"
+                      }`}
+                    >
+                      {role}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-[#153D70] uppercase tracking-wider">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    placeholder={isAdmin ? "staff@ug.edu.gh" : "student@st.ug.edu.gh"}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-4 py-3 bg-[#F8F9FA] rounded-xl text-sm text-[#1a1a2e] placeholder-gray-400 border border-slate-200 focus:border-[#153D70] focus:outline-none transition-colors"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-[#153D70] uppercase tracking-wider">
+                    {isAdmin ? "Staff ID Number" : "Student ID Number"}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder={isAdmin ? "e.g. STAFF-001" : "e.g. 10897354"}
+                    value={idNumber}
+                    onChange={(e) => setIdNumber(e.target.value)}
+                    className="w-full px-4 py-3 bg-[#F8F9FA] rounded-xl text-sm text-[#1a1a2e] placeholder-gray-400 border border-slate-200 focus:border-[#153D70] focus:outline-none transition-colors"
+                  />
+                </div>
+
+                <PrimaryButton onClick={handleSendOTP} className="mt-2">
+                  Send OTP Code
+                </PrimaryButton>
+
+                <p className="text-center text-xs text-gray-400 pt-1">
+                  Need help?{" "}
+                  <span className="text-[#153D70] font-semibold cursor-pointer">Contact DCSIT Admin</span>
+                </p>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => setOtpSent(false)}
+                  className="flex items-center gap-2 text-[#153D70] text-sm font-semibold -mt-2"
+                >
+                  <ChevronDown size={16} className="rotate-90" />
+                  Back
+                </button>
+
+                <div className="text-center py-2">
+                  <div className="w-14 h-14 rounded-full bg-[#BA8F4A]/10 flex items-center justify-center mx-auto mb-3">
+                    <Mail size={28} color="#BA8F4A" />
+                  </div>
+                  <h3 className="text-[#153D70] font-bold text-base mb-1">Verify Your Email</h3>
+                  <p className="text-xs text-gray-500">
+                    Enter the 6-digit code sent to
+                    <br />
+                    <span className="font-semibold text-[#153D70]">{sentEmail}</span>
+                  </p>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-[#153D70] uppercase tracking-wider">
+                    Enter OTP Code
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="123456"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    maxLength={6}
+                    className="w-full px-4 py-3 bg-[#F8F9FA] rounded-xl text-sm text-[#1a1a2e] placeholder-gray-400 border border-slate-200 focus:border-[#153D70] focus:outline-none transition-colors text-center tracking-[0.5em] font-semibold text-lg"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setOtp("123456")}
+                  className="w-full py-1.5 text-xs text-[#153D70] font-semibold bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200"
+                >
+                  ⚡ Fill Demo Code: 123456
+                </button>
+
+                <PrimaryButton onClick={handleVerifyOTP} className="mt-1">
+                  Verify &amp; Sign In
+                </PrimaryButton>
+
+                <p className="text-center text-xs text-gray-400 pt-1">
+                  Didn't receive code?{" "}
+                  <button
+                    onClick={handleResendOTP}
+                    className="text-[#153D70] font-semibold"
+                  >
+                    Resend OTP
+                  </button>
+                </p>
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -540,13 +898,13 @@ function LoginScreen({
 // ────────────────────────────────────────────────────────────────────────────
 function StudentHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
-    <div className="bg-[#153D70] px-5 py-4 shrink-0">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-white font-bold text-lg leading-tight">{title}</h2>
-          {subtitle && <p className="text-white/60 text-xs mt-0.5">{subtitle}</p>}
+    <div className="bg-[#153D70] px-4 sm:px-5 py-3.5 sm:py-4 shrink-0">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-white font-bold text-base sm:text-lg leading-tight truncate">{title}</h2>
+          {subtitle && <p className="text-white/60 text-xs mt-0.5 truncate">{subtitle}</p>}
         </div>
-        <button className="relative p-2 rounded-xl bg-white/10">
+        <button className="relative p-2 rounded-xl bg-white/10 shrink-0">
           <Bell size={18} color="white" />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#BA8F4A] rounded-full border border-[#153D70]" />
         </button>
@@ -573,7 +931,7 @@ function StudentTabBar({
   ];
 
   return (
-    <div className="bg-white border-t border-[rgba(21,61,112,0.1)] shrink-0">
+    <div className="md:hidden sticky bottom-0 z-40 bg-white border-t border-[rgba(21,61,112,0.1)] shrink-0 shadow-[0_-2px_10px_rgba(0,0,0,0.04)]">
       <div className="flex">
         {tabs.map((t) => (
           <button
@@ -589,9 +947,11 @@ function StudentTabBar({
             >
               {t.label}
             </span>
-            {active === t.id && (
-              <span className="w-4 h-0.5 bg-[#BA8F4A] rounded-full" />
-            )}
+            <span
+              className={`w-4 h-0.5 rounded-full transition-colors ${
+                active === t.id ? "bg-[#BA8F4A]" : "bg-transparent"
+              }`}
+            />
           </button>
         ))}
       </div>
@@ -604,7 +964,7 @@ function StudentTabBar({
 // ────────────────────────────────────────────────────────────────────────────
 function StudentHomeTab({ onTabChange }: { onTabChange: (t: StudentTab) => void }) {
   return (
-    <div className="flex-1 overflow-y-auto bg-[#F8F9FA]">
+    <div className="w-full bg-[#F8F9FA] flex flex-col">
       <StudentHeader title="Good morning, Stephanie" subtitle="BSc Information Technology · Level 300" />
 
       <div className="px-4 py-4 space-y-4">
@@ -706,9 +1066,9 @@ function StudentCoursesTab({ onCourseClick }: { onCourseClick: (course: Course) 
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#F8F9FA]">
+    <div className="w-full flex flex-col bg-[#F8F9FA]">
       <StudentHeader title="My Courses" subtitle="Semester 2 · 2023/2024" />
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      <div className="w-full px-4 py-4 space-y-4">
         {/* Sync banner */}
         <div className="bg-white rounded-2xl p-4 border border-[rgba(21,61,112,0.06)] flex items-center gap-3">
           <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
@@ -802,7 +1162,7 @@ function CourseDetailsScreen({
     : 0;
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#F8F9FA]">
+    <div className="w-full flex flex-col bg-[#F8F9FA] relative">
       {/* Header */}
       <div className="bg-[#153D70] px-5 py-4 shrink-0">
         <button
@@ -826,7 +1186,7 @@ function CourseDetailsScreen({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-32">
+      <div className="w-full px-4 py-4 space-y-4 pb-8">
         {/* Registration Status */}
         {registered && (
           <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-center gap-3">
@@ -894,8 +1254,8 @@ function CourseDetailsScreen({
         )}
       </div>
 
-      {/* Action Buttons - Fixed at bottom */}
-      <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-[rgba(21,61,112,0.1)] p-4 space-y-3">
+      {/* Action Buttons - Sticky at bottom */}
+      <div className="sticky bottom-0 left-0 right-0 bg-white border-t border-[rgba(21,61,112,0.1)] p-4 space-y-3 shadow-md">
         {!registered ? (
           <PrimaryButton onClick={handleRegister}>
             Register for Course
@@ -909,7 +1269,7 @@ function CourseDetailsScreen({
 
       {/* Confirmation Modal */}
       {showConfirm && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-6 z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50">
           <div className="bg-white rounded-3xl p-6 max-w-sm w-full space-y-4">
             <div className="text-center">
               <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -959,9 +1319,9 @@ function StudentUploadTab() {
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#F8F9FA]">
+    <div className="w-full flex flex-col bg-[#F8F9FA]">
       <StudentHeader title="Upload Documents" subtitle="Proof of Registration" />
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      <div className="w-full px-4 py-4 space-y-4">
         {/* Instructions */}
         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex gap-3">
           <AlertCircle size={16} color="#1d4ed8" className="shrink-0 mt-0.5" />
@@ -1086,9 +1446,9 @@ function StudentStatusTab() {
   ];
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#F8F9FA]">
+    <div className="w-full flex flex-col bg-[#F8F9FA]">
       <StudentHeader title="Clearance Status" subtitle="Track your verification progress" />
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      <div className="w-full px-4 py-4 space-y-4">
         {/* Status card */}
         <div className={`${cfg.bg} border ${cfg.border} rounded-2xl p-5 flex flex-col items-center gap-3 text-center`}>
           <div className={`w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm`}>
@@ -1209,7 +1569,7 @@ function StudentRegistrationTab() {
   ];
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#F8F9FA]">
+    <div className="w-full flex flex-col bg-[#F8F9FA]">
       <StudentHeader
         title="Registration"
         subtitle={activeSubTab === "upload" ? "Upload documents" : "Track status"}
@@ -1243,7 +1603,7 @@ function StudentRegistrationTab() {
 
       {/* Content */}
       {activeSubTab === "upload" ? (
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+        <div className="w-full px-4 py-4 space-y-4">
           {/* Instructions */}
           <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex gap-3">
             <AlertCircle size={16} color="#1d4ed8" className="shrink-0 mt-0.5" />
@@ -1317,7 +1677,7 @@ function StudentRegistrationTab() {
           </PrimaryButton>
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+        <div className="w-full px-4 py-4 space-y-4">
           {/* Status card */}
           <div className={`${cfg.bg} border ${cfg.border} rounded-2xl p-5 flex flex-col items-center gap-3 text-center`}>
             <div className={`w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm`}>
@@ -1395,7 +1755,7 @@ function StudentProfileTab({
   const [showConfirm, setShowConfirm] = useState(false);
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#F8F9FA]">
+    <div className="w-full flex flex-col bg-[#F8F9FA]">
       {/* Hero header */}
       <div className="bg-[#153D70] pt-5 pb-14 px-5 text-center relative">
         <div className="w-20 h-20 rounded-full bg-[#BA8F4A] mx-auto flex items-center justify-center mb-3 ring-4 ring-white/20">
@@ -1409,7 +1769,7 @@ function StudentProfileTab({
         </span>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 -mt-8 space-y-4 pb-6">
+      <div className="w-full px-4 -mt-8 space-y-4 pb-6">
         {/* Info card */}
         <div className="bg-white rounded-2xl border border-[rgba(21,61,112,0.06)] p-4 shadow-sm">
           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Student Information</p>
@@ -1519,13 +1879,13 @@ function StudentProfileTab({
 // ────────────────────────────────────────────────────────────────────────────
 function SubHeader({ title, subtitle, onBack }: { title: string; subtitle?: string; onBack: () => void }) {
   return (
-    <div className="bg-[#153D70] px-5 pt-4 pb-4 shrink-0 flex items-center gap-3">
+    <div className="bg-[#153D70] px-4 sm:px-5 pt-3.5 sm:pt-4 pb-3.5 sm:pb-4 shrink-0 flex items-center gap-3">
       <button onClick={onBack} className="p-2 rounded-xl bg-white/10 shrink-0">
         <ChevronRight size={18} color="white" className="rotate-180" />
       </button>
-      <div>
-        <h2 className="text-white font-bold text-base leading-tight">{title}</h2>
-        {subtitle && <p className="text-white/60 text-xs mt-0.5">{subtitle}</p>}
+      <div className="min-w-0 flex-1">
+        <h2 className="text-white font-bold text-base leading-tight truncate">{title}</h2>
+        {subtitle && <p className="text-white/60 text-xs mt-0.5 truncate">{subtitle}</p>}
       </div>
     </div>
   );
@@ -1628,9 +1988,9 @@ function NotificationsScreen({ onBack }: { onBack: () => void }) {
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#F8F9FA]">
+    <div className="w-full flex flex-col bg-[#F8F9FA]">
       <SubHeader title="Notifications" subtitle={unreadCount > 0 ? `${unreadCount} unread` : "All caught up"} onBack={onBack} />
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      <div className="w-full px-4 py-4 space-y-4">
         {/* Header row */}
         <div className="flex items-center justify-between">
           <span className="text-xs text-gray-400">{items.length} notifications</span>
@@ -1701,9 +2061,9 @@ function PrivacySecurityScreen({ onBack }: { onBack: () => void }) {
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#F8F9FA]">
+    <div className="w-full flex flex-col bg-[#F8F9FA]">
       <SubHeader title="Privacy & Security" subtitle="Keep your account safe" onBack={onBack} />
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      <div className="w-full px-4 py-4 space-y-4">
 
         {/* Password section */}
         <div className="bg-white rounded-2xl border border-[rgba(21,61,112,0.06)] overflow-hidden shadow-sm">
@@ -1871,9 +2231,9 @@ function HelpSupportScreen({ onBack }: { onBack: () => void }) {
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#F8F9FA]">
+    <div className="w-full flex flex-col bg-[#F8F9FA]">
       <SubHeader title="Help & Support" subtitle="We're here to help" onBack={onBack} />
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      <div className="w-full px-4 py-4 space-y-4">
 
         {/* Quick contact buttons */}
         <div className="grid grid-cols-3 gap-2">
@@ -1977,7 +2337,6 @@ function HelpSupportScreen({ onBack }: { onBack: () => void }) {
 // ────────────────────────────────────────────────────────────────────────────
 // Admin — shared header
 // ────────────────────────────────────────────────────────────────────────────
-type AdminTab = "overview" | "submissions" | "students" | "settings";
 
 const TREND_DATA = [
   { day: "Mon", count: 8 },
@@ -2026,19 +2385,23 @@ function AdminTabBar({ active, onChange }: { active: AdminTab; onChange: (t: Adm
     { id: "settings", label: "Settings", icon: <Shield size={19} /> },
   ];
   return (
-    <div className="bg-white border-t border-[rgba(21,61,112,0.1)] shrink-0">
+    <div className="md:hidden sticky bottom-0 z-40 bg-white border-t border-[rgba(21,61,112,0.1)] shrink-0 shadow-[0_-2px_10px_rgba(0,0,0,0.04)]">
       <div className="flex">
         {tabs.map((t) => (
           <button
             key={t.id}
             onClick={() => onChange(t.id)}
-            className="flex-1 flex flex-col items-center gap-0.5 py-2.5"
+            className="flex-1 flex flex-col items-center gap-0.5 py-2.5 transition-colors"
           >
             <span className={active === t.id ? "text-[#153D70]" : "text-gray-400"}>{t.icon}</span>
             <span className={`text-[9px] font-bold ${active === t.id ? "text-[#153D70]" : "text-gray-400"}`}>
               {t.label}
             </span>
-            {active === t.id && <span className="w-4 h-0.5 bg-[#BA8F4A] rounded-full" />}
+            <span
+              className={`w-4 h-0.5 rounded-full transition-colors ${
+                active === t.id ? "bg-[#BA8F4A]" : "bg-transparent"
+              }`}
+            />
           </button>
         ))}
       </div>
@@ -2057,7 +2420,7 @@ function AdminOverviewTab() {
   const maxCount = Math.max(...TREND_DATA.map((d) => d.count));
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#F8F9FA] px-4 py-4 space-y-4">
+    <div className="w-full bg-[#F8F9FA] px-4 py-4 space-y-4">
       {/* Welcome banner */}
       <div className="bg-[#153D70] rounded-2xl p-4 text-white">
         <div className="flex justify-between items-start">
@@ -2191,7 +2554,7 @@ function AdminSubmissionsTab({ onReview }: { onReview: (s: Submission) => void }
   });
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#F8F9FA]">
+    <div className="w-full flex flex-col bg-[#F8F9FA]">
       {/* mini stats */}
       <div className="px-4 pt-4 pb-2 shrink-0">
         <div className="flex gap-2">
@@ -2209,7 +2572,7 @@ function AdminSubmissionsTab({ onReview }: { onReview: (s: Submission) => void }
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-3">
+      <div className="w-full px-4 pb-4 space-y-3">
         {/* Search */}
         <div className="relative">
           <Search size={14} color="#9ca3af" className="absolute left-3 top-1/2 -translate-y-1/2" />
@@ -2283,7 +2646,7 @@ function AdminStudentsTab() {
   const levels = ["Level 100", "Level 200", "Level 300", "Level 400"];
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#F8F9FA]">
+    <div className="w-full flex flex-col bg-[#F8F9FA]">
       <div className="px-4 pt-4 pb-2 shrink-0 space-y-3">
         <div className="relative">
           <Search size={14} color="#9ca3af" className="absolute left-3 top-1/2 -translate-y-1/2" />
@@ -2309,7 +2672,7 @@ function AdminStudentsTab() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-2">
+      <div className="w-full px-4 pb-4 space-y-2">
         {filtered.map((s) => (
           <div
             key={s.id}
@@ -2344,7 +2707,7 @@ function AdminSettingsTab({ onLogout }: { onLogout: () => void }) {
   const [showConfirm, setShowConfirm] = useState(false);
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#F8F9FA] px-4 py-4 space-y-4">
+    <div className="w-full bg-[#F8F9FA] px-4 py-4 space-y-4">
       {/* Admin profile card */}
       <div className="bg-white rounded-2xl border border-[rgba(21,61,112,0.06)] p-5 flex flex-col items-center shadow-sm">
         <div className="w-16 h-16 rounded-2xl bg-[#153D70] flex items-center justify-center mb-3 ring-4 ring-blue-50">
@@ -2437,20 +2800,22 @@ function AdminSettingsTab({ onLogout }: { onLogout: () => void }) {
 
 // ─── Admin Dashboard shell ─────────────────────────────────────────────────
 function AdminDashboard({
+  tab,
+  onTabChange,
   onReview,
   onLogout,
 }: {
+  tab: AdminTab;
+  onTabChange: (t: AdminTab) => void;
   onReview: (s: Submission) => void;
   onLogout: () => void;
 }) {
-  const [tab, setTab] = useState<AdminTab>("overview");
-
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#F8F9FA]">
+    <div className="w-full flex flex-col bg-[#F8F9FA]">
       <AdminTopBar onLogout={onLogout} />
 
-      {/* Tab label strip */}
-      <div className="bg-[#153D70] px-5 pb-3 shrink-0">
+      {/* Tab label strip (mobile only, as desktop sidebar shows active section) */}
+      <div className="md:hidden bg-[#153D70] px-5 pb-3 shrink-0">
         <p className="text-white/50 text-xs font-medium capitalize">
           {tab === "overview" ? "Analytics & Overview" :
            tab === "submissions" ? "All Submissions" :
@@ -2463,7 +2828,7 @@ function AdminDashboard({
       {tab === "students" && <AdminStudentsTab />}
       {tab === "settings" && <AdminSettingsTab onLogout={onLogout} />}
 
-      <AdminTabBar active={tab} onChange={setTab} />
+      <AdminTabBar active={tab} onChange={onTabChange} />
     </div>
   );
 }
@@ -2490,7 +2855,7 @@ function AdminReviewScreen({
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#F8F9FA]">
+    <div className="w-full flex flex-col bg-[#F8F9FA]">
       <div className="bg-[#153D70] px-5 pt-4 pb-4 shrink-0">
         <div className="flex items-center gap-3">
           <button onClick={onBack} className="p-2 rounded-xl bg-white/10">
@@ -2503,7 +2868,7 @@ function AdminReviewScreen({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      <div className="w-full px-4 py-4 space-y-4">
         {/* Status banner */}
         <div className="flex items-center justify-between bg-white rounded-2xl p-4 border border-[rgba(21,61,112,0.06)]">
           <div>
@@ -2619,8 +2984,9 @@ function AdminReviewScreen({
 // Root app
 // ────────────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [screen, setScreen] = useState<Screen>("splash");
+  const [screen, setScreen] = useState<Screen>("login");
   const [studentTab, setStudentTab] = useState<StudentTab>("home");
+  const [adminTab, setAdminTab] = useState<AdminTab>("overview");
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
 
@@ -2643,7 +3009,7 @@ export default function App() {
         return (
           <LoginScreen
             onStudentLogin={() => { setStudentTab("home"); setScreen("studentHome"); }}
-            onAdminLogin={() => setScreen("adminDashboard")}
+            onAdminLogin={() => { setAdminTab("overview"); setScreen("adminDashboard"); }}
           />
         );
 
@@ -2672,7 +3038,7 @@ export default function App() {
       case "studentRegistration":
       case "studentProfile":
         return (
-          <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="w-full flex flex-col">
             {studentTab === "home" && <StudentHomeTab onTabChange={(t) => setStudentTab(t)} />}
             {studentTab === "courses" && (
               <StudentCoursesTab
@@ -2702,6 +3068,8 @@ export default function App() {
       case "adminDashboard":
         return (
           <AdminDashboard
+            tab={adminTab}
+            onTabChange={setAdminTab}
             onReview={(s) => { setSelectedSubmission(s); setScreen("adminReview"); }}
             onLogout={() => setScreen("login")}
           />
@@ -2720,5 +3088,23 @@ export default function App() {
     }
   }
 
-  return <PhoneFrame>{renderInner()}</PhoneFrame>;
+  return (
+    <WebPortalLayout
+      screen={screen}
+      onNavigate={(s) => setScreen(s)}
+      onLogout={() => setScreen("login")}
+      studentTab={studentTab}
+      onStudentTabChange={(t) => {
+        setStudentTab(t);
+        setScreen(`student${t.charAt(0).toUpperCase() + t.slice(1)}` as Screen);
+      }}
+      adminTab={adminTab}
+      onAdminTabChange={(t) => {
+        setAdminTab(t);
+        setScreen("adminDashboard");
+      }}
+    >
+      {renderInner()}
+    </WebPortalLayout>
+  );
 }
