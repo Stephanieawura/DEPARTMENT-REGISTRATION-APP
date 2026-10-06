@@ -21,3 +21,4 @@ build/
 # Coverage
 coverage/
 .nyc_output/
+.neon
