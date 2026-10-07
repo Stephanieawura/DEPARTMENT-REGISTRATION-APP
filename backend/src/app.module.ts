@@ -10,6 +10,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { LoggerMiddleware } from './common/logger.middleware';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { LoggerMiddleware } from './common/logger.middleware';
     SubmissionsModule, 
     NotificationsModule, 
     PrismaModule, 
-    AuthModule
+    AuthModule, PaymentsModule
   ],
   controllers: [AppController],
   providers: [

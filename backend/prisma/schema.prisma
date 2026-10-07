@@ -22,6 +22,7 @@ model User {
   
   submissions  Submission[]
   notifications Notification[]
+  payments     Payment[]
   
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
@@ -94,4 +95,30 @@ model Notification {
   body      String
   time      DateTime @default(now())
   read      Boolean  @default(false)
+}
+
+model Payment {
+  id               String   @id @default(uuid())
+  studentId        String
+  student          User     @relation(fields: [studentId], references: [id])
+  
+  reference        String   @unique
+  amount           String
+  contactNumber    String?
+  residency        String?
+  hall             String?
+  
+  method           String?
+  transactionId    String?
+  proofUrl         String?
+  
+  status           PaymentStatus @default(PENDING)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

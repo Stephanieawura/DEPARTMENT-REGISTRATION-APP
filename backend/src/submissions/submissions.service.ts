@@ -17,7 +17,16 @@ export class SubmissionsService {
       throw new NotFoundException(`Student with ID ${studentId} not found`);
     }
 
-    // 2. Validate all courses exist
+    // 2. Check for existing submission
+    const existingSubmission = await this.prisma.submission.findFirst({
+      where: { studentId }
+    });
+
+    if (existingSubmission) {
+      throw new BadRequestException('You have already submitted a registration.');
+    }
+
+    // 3. Validate all courses exist
     const courses = await this.prisma.course.findMany({
       where: { id: { in: courseIds } },
     });
@@ -26,7 +35,7 @@ export class SubmissionsService {
       throw new BadRequestException('One or more selected courses do not exist.');
     }
 
-    // 3. Create Submission and join records within a Transaction
+    // 4. Create Submission and join records within a Transaction
     return this.prisma.$transaction(async (tx) => {
       const submission = await tx.submission.create({
         data: {

@@ -61,6 +61,7 @@ export default function RegistrationScreen() {
   const [subTab, setSubTab] = useState<SubTab>("upload");
   const [uploadedFile, setUploadedFile] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
+  const navigation = require('@react-navigation/native').useNavigation();
   const [userData, setUserData] = useState<any>(null);
   const [submission, setSubmission] = useState<any>(null);
 
@@ -69,8 +70,17 @@ export default function RegistrationScreen() {
   const [studentIdStr, setStudentIdStr] = useState('');
   const [program, setProgram] = useState('');
   const [level, setLevel] = useState('');
-  const [academicYear, setAcademicYear] = useState('');
+  const [academicYear, setAcademicYear] = useState('2023/2024');
   const [semester, setSemester] = useState('');
+
+  const [showProgramModal, setShowProgramModal] = useState(false);
+  const programs = ["BSc Information Technology", "BSc Computer Science", "BSc Mathematical Science"];
+
+  const [showLevelModal, setShowLevelModal] = useState(false);
+  const levels = ["100", "200", "300", "400"];
+
+  const [showSemesterModal, setShowSemesterModal] = useState(false);
+  const semesters = ["Semester 1", "Semester 2"];
 
   const status: VerificationStatus = !submission ? 'Not_Submitted' 
     : submission.status === 'APPROVED' ? 'Approved' 
@@ -169,7 +179,7 @@ export default function RegistrationScreen() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      Alert.alert("Submitted", "Your registration has been submitted and saved in the database!");
+      navigation.navigate("Dues");
     } catch (e: any) {
       console.error(e);
       Alert.alert("Error", e.response?.data?.message || "Failed to submit document to server");
@@ -263,30 +273,58 @@ export default function RegistrationScreen() {
             </View>
             <View style={styles.formField}>
               <Text style={styles.formLabel}>Programme</Text>
-              <TextInput style={styles.textInput} value={program} onChangeText={setProgram} placeholder="e.g. BSc Information Technology" />
+              <TouchableOpacity 
+                style={[styles.textInput, { justifyContent: 'center' }]} 
+                onPress={() => setShowProgramModal(true)}
+                activeOpacity={0.8}
+              >
+                <Text style={{ color: program ? Colors.darkText : Colors.gray400, fontSize: 13 }}>
+                  {program || "Select your programme"}
+                </Text>
+              </TouchableOpacity>
             </View>
             <View style={styles.formField}>
               <Text style={styles.formLabel}>Level</Text>
-              <TextInput style={styles.textInput} value={level} onChangeText={setLevel} placeholder="e.g. 300" />
+              <TouchableOpacity 
+                style={[styles.textInput, { justifyContent: 'center' }]} 
+                onPress={() => setShowLevelModal(true)}
+                activeOpacity={0.8}
+              >
+                <Text style={{ color: level ? Colors.darkText : Colors.gray400, fontSize: 13 }}>
+                  {level || "Select your level"}
+                </Text>
+              </TouchableOpacity>
             </View>
             <View style={styles.formField}>
               <Text style={styles.formLabel}>Academic Year</Text>
-              <TextInput style={styles.textInput} value={academicYear} onChangeText={setAcademicYear} placeholder="e.g. 2023/2024" />
+              <TextInput 
+                style={[styles.textInput, { color: Colors.gray500, backgroundColor: '#f9fafb' }]} 
+                value={academicYear} 
+                editable={false}
+              />
             </View>
             <View style={styles.formField}>
               <Text style={styles.formLabel}>Semester</Text>
-              <TextInput style={styles.textInput} value={semester} onChangeText={setSemester} placeholder="e.g. Semester 2" />
+              <TouchableOpacity 
+                style={[styles.textInput, { justifyContent: 'center' }]} 
+                onPress={() => setShowSemesterModal(true)}
+                activeOpacity={0.8}
+              >
+                <Text style={{ color: semester ? Colors.darkText : Colors.gray400, fontSize: 13 }}>
+                  {semester || "Select semester"}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
 
           <TouchableOpacity
             onPress={handleSubmit}
-            disabled={!uploadedFile || submitting}
-            style={[styles.submitBtn, (!uploadedFile || submitting) && styles.submitBtnDisabled]}
+            disabled={!uploadedFile || submitting || !!submission}
+            style={[styles.submitBtn, (!uploadedFile || submitting || !!submission) && styles.submitBtnDisabled]}
             activeOpacity={0.85}
           >
             <Text style={styles.submitBtnText}>
-              {submitting ? "Submitting…" : "Submit for Verification"}
+              {!!submission ? "Already Submitted" : submitting ? "Submitting…" : "Submit for Verification"}
             </Text>
           </TouchableOpacity>
         </ScrollView>
@@ -351,6 +389,72 @@ export default function RegistrationScreen() {
           </View>
         </ScrollView>
       )}
+
+      {/* Programme Selection Modal */}
+      {showProgramModal && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Programme</Text>
+            {programs.map((p) => (
+              <TouchableOpacity 
+                key={p} 
+                style={styles.modalOption} 
+                onPress={() => { setProgram(p); setShowProgramModal(false); }}
+              >
+                <Text style={styles.modalOptionText}>{p}</Text>
+                {program === p && <Feather name="check" size={16} color={Colors.deepBlue} />}
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity onPress={() => setShowProgramModal(false)} style={{ marginTop: 24, alignItems: 'center' }}>
+              <Text style={{ color: Colors.gray500, fontWeight: "600" }}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* Level Selection Modal */}
+      {showLevelModal && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Level</Text>
+            {levels.map((l) => (
+              <TouchableOpacity 
+                key={l} 
+                style={styles.modalOption} 
+                onPress={() => { setLevel(l); setShowLevelModal(false); }}
+              >
+                <Text style={styles.modalOptionText}>{l}</Text>
+                {level === l && <Feather name="check" size={16} color={Colors.deepBlue} />}
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity onPress={() => setShowLevelModal(false)} style={{ marginTop: 24, alignItems: 'center' }}>
+              <Text style={{ color: Colors.gray500, fontWeight: "600" }}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* Semester Selection Modal */}
+      {showSemesterModal && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Semester</Text>
+            {semesters.map((s) => (
+              <TouchableOpacity 
+                key={s} 
+                style={styles.modalOption} 
+                onPress={() => { setSemester(s); setShowSemesterModal(false); }}
+              >
+                <Text style={styles.modalOptionText}>{s}</Text>
+                {semester === s && <Feather name="check" size={16} color={Colors.deepBlue} />}
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity onPress={() => setShowSemesterModal(false)} style={{ marginTop: 24, alignItems: 'center' }}>
+              <Text style={{ color: Colors.gray500, fontWeight: "600" }}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -409,4 +513,11 @@ const styles = StyleSheet.create({
   timelineLabelDone: { color: Colors.darkText },
   timelineLabelPending: { color: Colors.gray400 },
   timelineTime: { color: Colors.gray400, fontSize: 10, marginTop: 2 },
+
+  // Modal styles
+  modalOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end', zIndex: 999 },
+  modalContent: { backgroundColor: Colors.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40 },
+  modalTitle: { fontSize: 16, fontWeight: '700', color: Colors.darkText, marginBottom: 8, textAlign: 'center' },
+  modalOption: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
+  modalOptionText: { fontSize: 15, color: Colors.darkText },
 });

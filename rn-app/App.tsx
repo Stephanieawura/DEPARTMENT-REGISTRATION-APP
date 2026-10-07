@@ -9,6 +9,7 @@ import CourseDetailsScreen from "./src/screens/student/CourseDetailsScreen";
 import NotificationsScreen from "./src/screens/student/NotificationsScreen";
 import PrivacyScreen from "./src/screens/student/PrivacyScreen";
 import HelpScreen from "./src/screens/student/HelpScreen";
+import DuesScreen from "./src/screens/student/DuesScreen";
 import type { Course } from "./src/types";
 
 import * as Linking from "expo-linking";
@@ -22,6 +23,7 @@ export type RootStackParamList = {
   Notifications: undefined;
   Privacy: undefined;
   HelpSupport: undefined;
+  Dues: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -89,6 +91,11 @@ export default function App() {
             name="HelpSupport"
             component={HelpScreen}
             options={{ animation: "slide_from_bottom" }}
+          />
+          <Stack.Screen
+            name="Dues"
+            component={DuesScreen}
+            options={{ animation: "slide_from_right" }}
           />
         </Stack.Navigator>
       </NavigationContainer>

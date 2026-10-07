@@ -1,19 +1,46 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Alert } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { SAMPLE_SUBMISSIONS } from "../../data/sampleData";
 import { Colors } from "../../constants/Colors";
 import StatusBadge from "../../components/StatusBadge";
 import type { Submission, VerificationStatus } from "../../types";
+import api from "../../api";
 
 type FilterStatus = "All" | VerificationStatus;
 
 export default function SubmissionsScreen() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterStatus>("All");
-  const [submissions, setSubmissions] = useState<Submission[]>(SAMPLE_SUBMISSIONS);
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [selected, setSelected] = useState<Submission | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchSubmissions();
+    }, [])
+  );
+
+  const fetchSubmissions = async () => {
+    try {
+      const res = await api.get('/submissions');
+      const mapped: Submission[] = res.data.map((s: any) => ({
+        id: s.id,
+        name: s.student?.name || "Unknown",
+        studentId: s.student?.studentId || "Unknown",
+        level: s.student?.level || "",
+        program: s.student?.program || "",
+        courses: s.courses?.length || 0,
+        submittedAt: new Date(s.submittedAt).toLocaleDateString(),
+        status: s.status === 'PENDING' ? 'Pending' : s.status === 'APPROVED' ? 'Approved' : 'Rejected'
+      }));
+      setSubmissions(mapped);
+    } catch (e) {
+      console.error("Failed to fetch submissions:", e);
+    }
+  };
 
   const filtered = submissions.filter((s) => {
     const matchSearch =

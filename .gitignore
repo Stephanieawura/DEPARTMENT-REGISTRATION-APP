@@ -22,3 +22,6 @@ build/
 coverage/
 .nyc_output/
 .neon
+
+# Ignored assets
+rn-app/public/

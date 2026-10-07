@@ -1,12 +1,14 @@
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
+import { useState, useCallback } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../../App";
 import { SAMPLE_SUBMISSIONS } from "../../data/sampleData";
 import { Colors } from "../../constants/Colors";
 import StatusBadge from "../../components/StatusBadge";
+import api from "../../api";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -23,11 +25,26 @@ const MAX_COUNT = Math.max(...TREND_DATA.map((d) => d.count));
 
 export default function AdminDashboardScreen() {
   const navigation = useNavigation<Nav>();
+  const [submissions, setSubmissions] = useState<any[]>([]);
 
-  const pending = SAMPLE_SUBMISSIONS.filter((s) => s.status === "Pending").length;
-  const approved = SAMPLE_SUBMISSIONS.filter((s) => s.status === "Approved").length;
-  const rejected = SAMPLE_SUBMISSIONS.filter((s) => s.status === "Rejected").length;
-  const total = SAMPLE_SUBMISSIONS.length;
+  useFocusEffect(
+    useCallback(() => {
+      async function fetchStats() {
+      try {
+        const res = await api.get('/submissions');
+        setSubmissions(res.data);
+      } catch (e) {
+        console.error("Failed to fetch admin stats:", e);
+      }
+    }
+    fetchStats();
+  }, [])
+  );
+
+  const pending = submissions.filter((s) => s.status === "PENDING").length;
+  const approved = submissions.filter((s) => s.status === "APPROVED").length;
+  const rejected = submissions.filter((s) => s.status === "REJECTED").length;
+  const total = submissions.length;
 
   const stats = [
     { label: "Total Students", value: total, color: Colors.deepBlue, bg: "#eff6ff", sub: "Registered" },
@@ -138,16 +155,16 @@ export default function AdminDashboardScreen() {
         {/* Recent submissions */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Recent Submissions</Text>
-          {SAMPLE_SUBMISSIONS.slice(0, 3).map((s, i) => (
+          {submissions.slice(0, 3).map((s, i) => (
             <View key={i} style={[styles.submissionRow, i > 0 && styles.submissionBorder]}>
               <View style={styles.submissionAvatar}>
-                <Text style={styles.submissionAvatarText}>{s.name.charAt(0)}</Text>
+                <Text style={styles.submissionAvatarText}>{(s.student?.name || "?").charAt(0).toUpperCase()}</Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.submissionName}>{s.name}</Text>
-                <Text style={styles.submissionId}>{s.studentId} · {s.program}</Text>
+                <Text style={styles.submissionName}>{s.student?.name || "Unknown"}</Text>
+                <Text style={styles.submissionId}>{s.student?.studentId || "Unknown"} · {s.student?.program || ""}</Text>
               </View>
-              <StatusBadge status={s.status} />
+              <StatusBadge status={s.status === 'PENDING' ? 'Pending' : s.status === 'APPROVED' ? 'Approved' : 'Rejected'} />
             </View>
           ))}
         </View>

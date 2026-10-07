@@ -1,15 +1,43 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { SAMPLE_SUBMISSIONS } from "../../data/sampleData";
 import { Colors } from "../../constants/Colors";
 import StatusBadge from "../../components/StatusBadge";
+import type { Submission } from "../../types";
+import api from "../../api";
 
 export default function AdminStudentsScreen() {
   const [search, setSearch] = useState("");
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
 
-  const filtered = SAMPLE_SUBMISSIONS.filter(
+  useFocusEffect(
+    useCallback(() => {
+      async function fetchStudents() {
+      try {
+        const res = await api.get('/submissions');
+        const mapped: Submission[] = res.data.map((s: any) => ({
+          id: s.id,
+          name: s.student?.name || "Unknown",
+          studentId: s.student?.studentId || "Unknown",
+          level: s.student?.level || "",
+          program: s.student?.program || "",
+          courses: s.courses?.length || 0,
+          submittedAt: new Date(s.submittedAt).toLocaleDateString(),
+          status: s.status === 'PENDING' ? 'Pending' : s.status === 'APPROVED' ? 'Approved' : 'Rejected'
+        }));
+        setSubmissions(mapped);
+      } catch (e) {
+        console.error("Failed to fetch admin students:", e);
+      }
+    }
+    fetchStudents();
+    }, [])
+  );
+
+  const filtered = submissions.filter(
     (s) =>
       s.name.toLowerCase().includes(search.toLowerCase()) ||
       s.studentId.includes(search) ||
@@ -20,7 +48,7 @@ export default function AdminStudentsScreen() {
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Students</Text>
-        <Text style={styles.headerSub}>{SAMPLE_SUBMISSIONS.length} registered this semester</Text>
+        <Text style={styles.headerSub}>{submissions.length} registered this semester</Text>
       </View>
 
       <View style={styles.searchRow}>
@@ -44,10 +72,10 @@ export default function AdminStudentsScreen() {
       {/* Summary chips */}
       <View style={styles.summaryRow}>
         {[
-          { label: "Total", value: SAMPLE_SUBMISSIONS.length, color: Colors.deepBlue },
-          { label: "Pending", value: SAMPLE_SUBMISSIONS.filter(s => s.status === "Pending").length, color: "#b45309" },
-          { label: "Approved", value: SAMPLE_SUBMISSIONS.filter(s => s.status === "Approved").length, color: "#059669" },
-          { label: "Rejected", value: SAMPLE_SUBMISSIONS.filter(s => s.status === "Rejected").length, color: Colors.red },
+          { label: "Total", value: submissions.length, color: Colors.deepBlue },
+          { label: "Pending", value: submissions.filter(s => s.status === "Pending").length, color: "#b45309" },
+          { label: "Approved", value: submissions.filter(s => s.status === "Approved").length, color: "#059669" },
+          { label: "Rejected", value: submissions.filter(s => s.status === "Rejected").length, color: Colors.red },
         ].map((c) => (
           <View key={c.label} style={styles.summaryChip}>
             <Text style={[styles.summaryValue, { color: c.color }]}>{c.value}</Text>
