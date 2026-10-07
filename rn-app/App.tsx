@@ -11,6 +11,8 @@ import PrivacyScreen from "./src/screens/student/PrivacyScreen";
 import HelpScreen from "./src/screens/student/HelpScreen";
 import type { Course } from "./src/types";
 
+import * as Linking from "expo-linking";
+
 export type RootStackParamList = {
   Splash: undefined;
   Login: undefined;
@@ -24,10 +26,42 @@ export type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+const linking = {
+  prefixes: [Linking.createURL("/"), "http://localhost:8081", "http://localhost:19006"],
+  config: {
+    screens: {
+      Splash: "",
+      Login: "login",
+      StudentApp: {
+        path: "student",
+        screens: {
+          Home: "home",
+          Courses: "courses",
+          Registration: "registration",
+          Profile: "profile",
+        },
+      },
+      AdminApp: {
+        path: "admin",
+        screens: {
+          Dashboard: "dashboard",
+          Submissions: "submissions",
+          Students: "students",
+          Settings: "settings",
+        },
+      },
+      CourseDetails: "course",
+      Notifications: "notifications",
+      Privacy: "privacy",
+      HelpSupport: "help",
+    },
+  },
+};
+
 export default function App() {
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
+      <NavigationContainer linking={linking}>
         <Stack.Navigator
           initialRouteName="Splash"
           screenOptions={{ headerShown: false, animation: "slide_from_right" }}
