@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   tabActive: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.deepBlue,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     color: Colors.gray500,
   },
   tabTextActive: {
-    color: Colors.deepBlue,
+    color: Colors.white,
     fontWeight: "600",
   },
 });
