@@ -173,22 +173,26 @@ export default function SubmissionsScreen() {
             ))}
 
             <View style={styles.actionBtns}>
-              <TouchableOpacity
-                style={[styles.approveBtn, submitting && { opacity: 0.5 }]}
-                onPress={() => updateStatus(selected.id, "Approved")}
-                disabled={submitting}
-              >
-                <Feather name="check" size={16} color={Colors.white} />
-                <Text style={styles.approveBtnText}>{submitting ? "..." : "Approve"}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.rejectBtn, submitting && { opacity: 0.5 }]}
-                onPress={() => updateStatus(selected.id, "Rejected")}
-                disabled={submitting}
-              >
-                <Feather name="x" size={16} color={Colors.red} />
-                <Text style={styles.rejectBtnText}>{submitting ? "..." : "Reject"}</Text>
-              </TouchableOpacity>
+              {selected.status !== "Approved" && (
+                <TouchableOpacity
+                  style={[styles.approveBtn, submitting && { opacity: 0.5 }]}
+                  onPress={() => updateStatus(selected.id, "Approved")}
+                  disabled={submitting}
+                >
+                  <Feather name="check" size={16} color={Colors.white} />
+                  <Text style={styles.approveBtnText}>{submitting ? "..." : "Approve"}</Text>
+                </TouchableOpacity>
+              )}
+              {selected.status !== "Rejected" && (
+                <TouchableOpacity
+                  style={[styles.rejectBtn, submitting && { opacity: 0.5 }]}
+                  onPress={() => updateStatus(selected.id, "Rejected")}
+                  disabled={submitting}
+                >
+                  <Feather name="x" size={16} color={Colors.red} />
+                  <Text style={styles.rejectBtnText}>{submitting ? "..." : "Reject"}</Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </View>
