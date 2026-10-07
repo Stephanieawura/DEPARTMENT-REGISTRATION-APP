@@ -6,8 +6,8 @@ const getBaseUrl = () => {
   if (Platform.OS === 'web') {
     return `http://${window.location.hostname}:3000/api`;
   }
-  // If running on a physical phone via Expo Go, this IP needs to be the PC's Wi-Fi IP.
-  return 'http://192.168.0.3:3000/api';
+  // For physical devices, you must change 'localhost' below to your PC's IPv4 address.
+  return 'http://localhost:3000/api';
 };
 
 const api = axios.create({
