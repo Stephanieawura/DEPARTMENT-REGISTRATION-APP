@@ -12,6 +12,24 @@ export class AuthService {
 
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.usersService.findByEmail(email);
+    
+    // For testing purposes: allow any student mail to login and auto-register them
+    if (email.toLowerCase() !== 'admin@ug.edu.gh') {
+      if (!user) {
+        return this.usersService.create({
+          email,
+          password: pass || 'default_password',
+          name: email.split('@')[0],
+          role: 'STUDENT' as any,
+          studentId: Math.floor(10000000 + Math.random() * 90000000).toString(),
+        });
+      }
+      // If student exists, bypass password check for easy testing
+      const { password, ...result } = user;
+      return result;
+    }
+
+    // Admin still requires proper password validation
     if (user && await bcrypt.compare(pass, user.password)) {
       const { password, ...result } = user;
       return result;
