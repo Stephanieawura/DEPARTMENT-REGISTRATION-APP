@@ -1,7 +1,8 @@
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
+import { useState, useCallback } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import type { StudentTabParamList } from "../../navigation/StudentApp";
 import { Colors } from "../../constants/Colors";
@@ -10,6 +11,27 @@ type Nav = BottomTabNavigationProp<StudentTabParamList>;
 
 export default function HomeScreen() {
   const navigation = useNavigation<Nav>();
+  const [userData, setUserData] = useState<any>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      async function loadUser() {
+        try {
+          const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+          const api = require('../../api').default;
+          const userId = await AsyncStorage.getItem('userId');
+          if (userId) {
+            const res = await api.get(`/users/${userId}`);
+            setUserData(res.data);
+          }
+        } catch (e) {
+          console.error("Failed to load user for home screen", e);
+        }
+      }
+      loadUser();
+    }, [])
+  );
+
 
   const quickActions = [
     {
@@ -53,8 +75,12 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.headerTitle}>Good morning, Stephanie</Text>
-          <Text style={styles.headerSub}>BSc Information Technology · Level 300</Text>
+          <Text style={styles.headerTitle}>
+            Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening'}, {userData?.name ? userData.name.split(' ')[0] : 'Student'}
+          </Text>
+          <Text style={styles.headerSub}>
+            {userData?.program || "No Program Set"} · Level {userData?.level || "N/A"}
+          </Text>
         </View>
         <TouchableOpacity style={styles.bellBtn}>
           <Feather name="bell" size={18} color={Colors.white} />
