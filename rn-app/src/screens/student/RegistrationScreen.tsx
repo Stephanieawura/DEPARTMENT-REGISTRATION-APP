@@ -135,8 +135,10 @@ export default function RegistrationScreen() {
     }
   }
 
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
   async function handleSubmit() {
-    if (!uploadedFile) return;
+    if (!uploadedFile || submitting || !!submission) return;
     setSubmitting(true);
     try {
       // 1. Get userId
@@ -179,7 +181,7 @@ export default function RegistrationScreen() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      navigation.navigate("Dues");
+      setShowSuccessModal(true);
     } catch (e: any) {
       console.error(e);
       Alert.alert("Error", e.response?.data?.message || "Failed to submit document to server");
@@ -451,6 +453,30 @@ export default function RegistrationScreen() {
             ))}
             <TouchableOpacity onPress={() => setShowSemesterModal(false)} style={{ marginTop: 24, alignItems: 'center' }}>
               <Text style={{ color: Colors.gray500, fontWeight: "600" }}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { alignItems: 'center', paddingVertical: 40 }]}>
+            <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: "#ecfdf5", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+              <Feather name="check" size={32} color="#10b981" />
+            </View>
+            <Text style={{ fontSize: 20, fontWeight: "800", color: Colors.darkText, marginBottom: 8 }}>Submission Successful!</Text>
+            <Text style={{ fontSize: 14, color: Colors.gray500, textAlign: "center", marginBottom: 32, paddingHorizontal: 16 }}>
+              Your documents have been securely uploaded and are now pending verification.
+            </Text>
+            <TouchableOpacity 
+              style={[styles.submitBtn, { width: '100%' }]} 
+              onPress={() => {
+                setShowSuccessModal(false);
+                navigation.navigate("Dues");
+              }}
+            >
+              <Text style={styles.submitBtnText}>Proceed to Pay Dues</Text>
             </TouchableOpacity>
           </View>
         </View>

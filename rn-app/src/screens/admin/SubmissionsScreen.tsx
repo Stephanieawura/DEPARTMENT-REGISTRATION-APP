@@ -16,6 +16,7 @@ export default function SubmissionsScreen() {
   const [filter, setFilter] = useState<FilterStatus>("All");
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [selected, setSelected] = useState<Submission | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -51,16 +52,20 @@ export default function SubmissionsScreen() {
   });
 
   async function updateStatus(id: string, status: VerificationStatus) {
+    if (submitting) return;
+    setSubmitting(true);
     try {
       const serverStatus = status === 'Pending' ? 'PENDING' : status === 'Approved' ? 'APPROVED' : 'REJECTED';
       await api.patch(`/submissions/${id}/status`, { status: serverStatus });
       
       setSubmissions((prev) => prev.map((s) => (s.id === id ? { ...s, status } : s)));
       setSelected(null);
-      Alert.alert("Updated", `Submission marked as ${status}.`);
+      Alert.alert("Success", `Submission has been officially marked as ${status}.`);
     } catch (e: any) {
       console.error("Failed to update status:", e);
       Alert.alert("Error", e.response?.data?.message || "Failed to update status on server.");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -169,18 +174,20 @@ export default function SubmissionsScreen() {
 
             <View style={styles.actionBtns}>
               <TouchableOpacity
-                style={styles.approveBtn}
+                style={[styles.approveBtn, submitting && { opacity: 0.5 }]}
                 onPress={() => updateStatus(selected.id, "Approved")}
+                disabled={submitting}
               >
                 <Feather name="check" size={16} color={Colors.white} />
-                <Text style={styles.approveBtnText}>Approve</Text>
+                <Text style={styles.approveBtnText}>{submitting ? "..." : "Approve"}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.rejectBtn}
+                style={[styles.rejectBtn, submitting && { opacity: 0.5 }]}
                 onPress={() => updateStatus(selected.id, "Rejected")}
+                disabled={submitting}
               >
                 <Feather name="x" size={16} color={Colors.red} />
-                <Text style={styles.rejectBtnText}>Reject</Text>
+                <Text style={styles.rejectBtnText}>{submitting ? "..." : "Reject"}</Text>
               </TouchableOpacity>
             </View>
           </View>

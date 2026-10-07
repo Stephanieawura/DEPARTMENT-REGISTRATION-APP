@@ -383,10 +383,11 @@ export default function DuesScreen() {
               autoFocus
             />
             <TouchableOpacity 
-              style={[styles.submitBtn, { width: '100%', marginTop: 24 }]} 
+              style={[styles.submitBtn, { width: '100%', marginTop: 24 }, submitting && styles.submitBtnDisabled]} 
               onPress={handleAuthorizePayment}
+              disabled={submitting}
             >
-              <Text style={styles.submitBtnText}>Authorize Payment</Text>
+              <Text style={styles.submitBtnText}>{submitting ? "Processing..." : "Authorize Payment"}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setShowPinModal(false)} style={{ marginTop: 16 }}>
               <Text style={{ color: Colors.gray500, fontWeight: "600" }}>Cancel</Text>
