@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Alert,
   TextInput,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
@@ -87,31 +88,33 @@ export default function RegistrationScreen() {
     : submission.status === 'REJECTED' ? 'Rejected' : 'Pending';
   const cfg = STATUS_CONFIG[status];
   
-  useEffect(() => {
-    async function fetchUser() {
-      try {
-        const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-        const api = require('../../api').default;
-        const userId = await AsyncStorage.getItem('userId');
-        if (userId) {
-          const res = await api.get(`/users/${userId}`);
-          setUserData(res.data);
+  useFocusEffect(
+    useCallback(() => {
+      async function fetchUser() {
+        try {
+          const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+          const api = require('../../api').default;
+          const userId = await AsyncStorage.getItem('userId');
+          if (userId) {
+            const res = await api.get(`/users/${userId}`);
+            setUserData(res.data);
 
-          try {
-            const subRes = await api.get(`/submissions/student/${userId}`);
-            if (subRes.data && subRes.data.length > 0) {
-              setSubmission(subRes.data[0]);
+            try {
+              const subRes = await api.get(`/submissions/student/${userId}`);
+              if (subRes.data && subRes.data.length > 0) {
+                setSubmission(subRes.data[0]);
+              }
+            } catch (e) {
+              console.log("No submissions yet");
             }
-          } catch (e) {
-            console.log("No submissions yet");
           }
+        } catch (e) {
+          console.error("Failed to load user data:", e);
         }
-      } catch (e) {
-        console.error("Failed to load user data:", e);
       }
-    }
-    fetchUser();
-  }, []);
+      fetchUser();
+    }, [])
+  );
 
   const accountCreatedTime = userData?.createdAt ? new Date(userData.createdAt) : null;
   const validAccountDate = accountCreatedTime && !isNaN(accountCreatedTime.getTime()) ? accountCreatedTime.toLocaleDateString() : "Unknown";
@@ -473,7 +476,10 @@ export default function RegistrationScreen() {
               style={[styles.submitBtn, { width: '100%' }]} 
               onPress={() => {
                 setShowSuccessModal(false);
-                navigation.navigate("Dues");
+                navigation.reset({
+                  index: 1,
+                  routes: [{ name: "StudentApp" }, { name: "Dues" }],
+                });
               }}
             >
               <Text style={styles.submitBtnText}>Proceed to Pay Dues</Text>
