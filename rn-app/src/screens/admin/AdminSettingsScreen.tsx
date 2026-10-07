@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Switch, StyleSheet, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
@@ -15,6 +15,25 @@ export default function AdminSettingsScreen() {
   const [pushNotif, setPushNotif] = useState(true);
   const [autoApprove, setAutoApprove] = useState(false);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
+  
+  const [adminUser, setAdminUser] = useState<any>(null);
+
+  useEffect(() => {
+    async function fetchAdmin() {
+      try {
+        const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+        const api = require('../../api').default;
+        const userId = await AsyncStorage.getItem('userId');
+        if (userId) {
+          const res = await api.get(`/users/${userId}`);
+          setAdminUser(res.data);
+        }
+      } catch (e) {
+        console.error("Failed to load admin profile", e);
+      }
+    }
+    fetchAdmin();
+  }, []);
 
   const semesterInfo = [
     { label: "Current Semester", value: "Semester 2" },
@@ -34,12 +53,14 @@ export default function AdminSettingsScreen() {
         {/* Admin profile */}
         <View style={styles.profileCard}>
           <View style={styles.profileAvatar}>
-            <Text style={styles.profileAvatarText}>KA</Text>
+            <Text style={styles.profileAvatarText}>
+              {adminUser?.name ? adminUser.name.substring(0, 2).toUpperCase() : "AD"}
+            </Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.profileName}>Mr. K. Acheampong</Text>
+            <Text style={styles.profileName}>{adminUser?.name || "Administrator"}</Text>
             <Text style={styles.profileRole}>CS Department Administrator</Text>
-            <Text style={styles.profileEmail}>k.acheampong@ug.edu.gh</Text>
+            <Text style={styles.profileEmail}>{adminUser?.email || "admin@ug.edu.gh"}</Text>
           </View>
         </View>
 

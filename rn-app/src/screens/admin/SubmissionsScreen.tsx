@@ -50,10 +50,18 @@ export default function SubmissionsScreen() {
     return matchSearch && matchFilter;
   });
 
-  function updateStatus(id: string, status: VerificationStatus) {
-    setSubmissions((prev) => prev.map((s) => (s.id === id ? { ...s, status } : s)));
-    setSelected(null);
-    Alert.alert("Updated", `Submission marked as ${status}.`);
+  async function updateStatus(id: string, status: VerificationStatus) {
+    try {
+      const serverStatus = status === 'Pending' ? 'PENDING' : status === 'Approved' ? 'APPROVED' : 'REJECTED';
+      await api.patch(`/submissions/${id}/status`, { status: serverStatus });
+      
+      setSubmissions((prev) => prev.map((s) => (s.id === id ? { ...s, status } : s)));
+      setSelected(null);
+      Alert.alert("Updated", `Submission marked as ${status}.`);
+    } catch (e: any) {
+      console.error("Failed to update status:", e);
+      Alert.alert("Error", e.response?.data?.message || "Failed to update status on server.");
+    }
   }
 
   const FILTERS: FilterStatus[] = ["All", "Pending", "Approved", "Rejected"];

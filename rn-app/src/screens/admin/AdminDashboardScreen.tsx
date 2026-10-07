@@ -12,16 +12,7 @@ import api from "../../api";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
-const TREND_DATA = [
-  { day: "Mon", count: 8 },
-  { day: "Tue", count: 12 },
-  { day: "Wed", count: 6 },
-  { day: "Thu", count: 15 },
-  { day: "Fri", count: 20 },
-  { day: "Sat", count: 4 },
-  { day: "Sun", count: 2 },
-];
-const MAX_COUNT = Math.max(...TREND_DATA.map((d) => d.count));
+
 
 export default function AdminDashboardScreen() {
   const navigation = useNavigation<Nav>();
@@ -58,6 +49,22 @@ export default function AdminDashboardScreen() {
     { label: "Pending", count: pending, color: "#f59e0b" },
     { label: "Rejected", count: rejected, color: "#ef4444" },
   ];
+
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const trendMap: Record<string, number> = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0, Sun: 0 };
+  
+  submissions.forEach(s => {
+    if (s.createdAt || s.submittedAt) {
+      const d = new Date(s.createdAt || s.submittedAt);
+      const dayStr = d.toLocaleDateString("en-US", { weekday: 'short' });
+      if (trendMap[dayStr] !== undefined) {
+        trendMap[dayStr]++;
+      }
+    }
+  });
+
+  const TREND_DATA = days.map(day => ({ day, count: trendMap[day] }));
+  const MAX_COUNT = Math.max(...TREND_DATA.map((d) => d.count), 1);
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
