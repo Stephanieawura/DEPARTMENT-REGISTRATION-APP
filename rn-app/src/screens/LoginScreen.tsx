@@ -167,7 +167,7 @@ export default function LoginScreen({ navigation }: Props) {
             <View style={styles.demoBanner}>
               <Text style={styles.demoText}>
                 <Text style={{ fontWeight: "700" }}>Testing Credentials:{"\n"}</Text>
-                Student: Any 8-digit ID / Any password{"\n"}
+                Student: student@dept.edu / password123{"\n"}
                 Admin: admin@ug.edu.gh / admin123
               </Text>
             </View>
