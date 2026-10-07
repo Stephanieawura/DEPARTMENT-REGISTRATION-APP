@@ -2,8 +2,11 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
-// Use the laptop's local WiFi IP so the physical phone can connect to the backend
 const getBaseUrl = () => {
+  if (Platform.OS === 'web') {
+    return `http://${window.location.hostname}:3000/api`;
+  }
+  // If running on a physical phone via Expo Go, this IP needs to be the PC's Wi-Fi IP.
   return 'http://192.168.0.3:3000/api';
 };
 
