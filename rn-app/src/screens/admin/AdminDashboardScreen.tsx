@@ -65,6 +65,7 @@ export default function AdminDashboardScreen() {
 
   const TREND_DATA = days.map(day => ({ day, count: trendMap[day] }));
   const MAX_COUNT = Math.max(...TREND_DATA.map((d) => d.count), 1);
+  const TOTAL_THIS_WEEK = TREND_DATA.reduce((sum, d) => sum + d.count, 0);
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -135,8 +136,7 @@ export default function AdminDashboardScreen() {
             })}
           </View>
           <View style={styles.chartFooter}>
-            <Text style={styles.chartTotal}>Total this week: <Text style={styles.chartTotalBold}>67</Text></Text>
-            <Text style={styles.chartTrend}>↑ 22% vs last week</Text>
+            <Text style={styles.chartTotal}>Total this week: <Text style={styles.chartTotalBold}>{TOTAL_THIS_WEEK}</Text></Text>
           </View>
         </View>
 
