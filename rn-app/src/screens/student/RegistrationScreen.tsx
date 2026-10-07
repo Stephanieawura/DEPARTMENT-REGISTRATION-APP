@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -54,21 +54,50 @@ const TIMELINE = [
   { label: "Clearance Decision", done: false, time: "Awaiting" },
 ];
 
-const FORM_FIELDS = [
-  { label: "Full Name", value: "Stephanie Awrabena Dunyo" },
-  { label: "Student ID", value: "10897354" },
-  { label: "Programme", value: "BSc Information Technology" },
-  { label: "Level", value: "Level 300" },
-  { label: "Academic Year", value: "2023/2024" },
-  { label: "Semester", value: "Semester 2" },
+// Static timeline; ideally this would also come from backend status
+const TIMELINE = [
+  { label: "Account Created", done: true, time: "Jan 14, 9:00am" },
+  { label: "Courses Synced", done: true, time: "Jan 15, 9:32am" },
+  { label: "Document Uploaded", done: true, time: "Jan 15, 9:35am" },
+  { label: "Submitted for Verification", done: true, time: "Jan 15, 9:36am" },
+  { label: "Under Review", done: false, time: "In progress" },
+  { label: "Clearance Decision", done: false, time: "Awaiting" },
 ];
 
 export default function RegistrationScreen() {
   const [subTab, setSubTab] = useState<SubTab>("upload");
   const [uploadedFile, setUploadedFile] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [userData, setUserData] = useState<any>(null);
+
   const status: VerificationStatus = "Pending";
   const cfg = STATUS_CONFIG[status];
+  
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+        const api = require('../../api').default;
+        const userId = await AsyncStorage.getItem('userId');
+        if (userId) {
+          const res = await api.get(`/users/${userId}`);
+          setUserData(res.data);
+        }
+      } catch (e) {
+        console.error("Failed to load user data:", e);
+      }
+    }
+    fetchUser();
+  }, []);
+
+  const formFields = userData ? [
+    { label: "Full Name", value: userData.name || "N/A" },
+    { label: "Student ID", value: userData.studentId || "N/A" },
+    { label: "Programme", value: userData.program || "N/A" },
+    { label: "Level", value: `Level ${userData.level || "N/A"}` },
+    { label: "Academic Year", value: "2023/2024" },
+    { label: "Semester", value: "Semester 2" },
+  ] : [];
 
   async function handlePick() {
     const result = await DocumentPicker.getDocumentAsync({ type: "application/pdf" });
@@ -197,7 +226,7 @@ export default function RegistrationScreen() {
           {/* Form */}
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Departmental Registration Form</Text>
-            {FORM_FIELDS.map((f) => (
+            {formFields.map((f) => (
               <View key={f.label} style={styles.formField}>
                 <Text style={styles.formLabel}>{f.label}</Text>
                 <View style={styles.formValue}>
