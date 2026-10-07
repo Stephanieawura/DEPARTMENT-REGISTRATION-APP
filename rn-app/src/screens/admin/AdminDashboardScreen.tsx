@@ -56,7 +56,8 @@ export default function AdminDashboardScreen() {
   submissions.forEach(s => {
     if (s.createdAt || s.submittedAt) {
       const d = new Date(s.createdAt || s.submittedAt);
-      const dayStr = d.toLocaleDateString("en-US", { weekday: 'short' });
+      const jsDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const dayStr = jsDays[d.getDay()];
       if (trendMap[dayStr] !== undefined) {
         trendMap[dayStr]++;
       }
