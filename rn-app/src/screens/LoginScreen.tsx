@@ -26,6 +26,7 @@ export default function LoginScreen({ navigation }: Props) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [roleTab, setRoleTab] = useState<"Student" | "Admin">("Student");
 
   async function handleLogin() {
     if (!email || !password) {
@@ -35,15 +36,17 @@ export default function LoginScreen({ navigation }: Props) {
 
     let finalEmail = email.trim();
 
-    // If they typed exactly 8 numbers, auto-append the student domain
-    if (/^\d{8}$/.test(finalEmail)) {
-      finalEmail = `${finalEmail}@st.ug.edu.gh`;
-      setEmail(finalEmail); // Update the input field visually
-    } 
-    // If they typed numbers but not exactly 8, enforce the rule
-    else if (/^\d+$/.test(finalEmail)) {
-      Alert.alert("Invalid ID", "Student ID must be exactly 8 numbers.");
-      return;
+    if (roleTab === "Student") {
+      // If they typed exactly 8 numbers, auto-append the student domain
+      if (/^\d{8}$/.test(finalEmail)) {
+        finalEmail = `${finalEmail}@st.ug.edu.gh`;
+        setEmail(finalEmail); // Update the input field visually
+      } 
+      // If they typed numbers but not exactly 8, enforce the rule
+      else if (/^\d+$/.test(finalEmail)) {
+        Alert.alert("Invalid ID", "Student ID must be exactly 8 numbers.");
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -93,11 +96,27 @@ export default function LoginScreen({ navigation }: Props) {
 
         <ScrollView style={styles.body} contentContainerStyle={{ paddingBottom: 40 }}>
           <View style={styles.card}>
+            {/* Tabs */}
+            <View style={styles.tabContainer}>
+              <TouchableOpacity
+                style={[styles.tab, roleTab === "Student" && styles.tabActive]}
+                onPress={() => { setRoleTab("Student"); setEmail(""); setPassword(""); }}
+              >
+                <Text style={[styles.tabText, roleTab === "Student" && styles.tabTextActive]}>Student</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.tab, roleTab === "Admin" && styles.tabActive]}
+                onPress={() => { setRoleTab("Admin"); setEmail(""); setPassword(""); }}
+              >
+                <Text style={[styles.tabText, roleTab === "Admin" && styles.tabTextActive]}>Admin</Text>
+              </TouchableOpacity>
+            </View>
+
             <View style={styles.field}>
-              <Text style={styles.label}>Student ID or Email</Text>
+              <Text style={styles.label}>{roleTab === "Student" ? "Student ID or Email" : "Admin Email"}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="12345678"
+                placeholder={roleTab === "Student" ? "12345678" : "admin@ug.edu.gh"}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -147,9 +166,9 @@ export default function LoginScreen({ navigation }: Props) {
 
             <View style={styles.demoBanner}>
               <Text style={styles.demoText}>
-                <Text style={{ fontWeight: "700" }}>Demo Credentials:{"\n"}</Text>
-                Student: student@dept.edu / password123{"\n"}
-                Admin: admin@dept.edu / password123
+                <Text style={{ fontWeight: "700" }}>Testing Credentials:{"\n"}</Text>
+                Student: Any 8-digit ID / Any password{"\n"}
+                Admin: admin@ug.edu.gh / admin123
               </Text>
             </View>
           </View>
@@ -254,4 +273,34 @@ const styles = StyleSheet.create({
   },
   demoText: { color: "#92400e", fontSize: 12, textAlign: "center", lineHeight: 18 },
   footer: { textAlign: "center", color: Colors.gray400, fontSize: 11, marginTop: 20 },
+  tabContainer: {
+    flexDirection: "row",
+    backgroundColor: Colors.lightGray,
+    borderRadius: 8,
+    padding: 4,
+    marginBottom: 24,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: "center",
+    borderRadius: 6,
+  },
+  tabActive: {
+    backgroundColor: Colors.white,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: Colors.gray500,
+  },
+  tabTextActive: {
+    color: Colors.deepBlue,
+    fontWeight: "600",
+  },
 });
