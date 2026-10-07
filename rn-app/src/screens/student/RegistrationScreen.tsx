@@ -69,8 +69,8 @@ export default function RegistrationScreen() {
   const [studentIdStr, setStudentIdStr] = useState('');
   const [program, setProgram] = useState('');
   const [level, setLevel] = useState('');
-  const [academicYear, setAcademicYear] = useState('2023/2024');
-  const [semester, setSemester] = useState('Semester 2');
+  const [academicYear, setAcademicYear] = useState('');
+  const [semester, setSemester] = useState('');
 
   const status: VerificationStatus = !submission ? 'Not_Submitted' 
     : submission.status === 'APPROVED' ? 'Approved' 
@@ -86,10 +86,6 @@ export default function RegistrationScreen() {
         if (userId) {
           const res = await api.get(`/users/${userId}`);
           setUserData(res.data);
-          setName(res.data.name || '');
-          setStudentIdStr(res.data.studentId || '');
-          setProgram(res.data.program || '');
-          setLevel(res.data.level || '');
 
           try {
             const subRes = await api.get(`/submissions/student/${userId}`);
@@ -275,11 +271,11 @@ export default function RegistrationScreen() {
             </View>
             <View style={styles.formField}>
               <Text style={styles.formLabel}>Academic Year</Text>
-              <TextInput style={styles.textInput} value={academicYear} onChangeText={setAcademicYear} />
+              <TextInput style={styles.textInput} value={academicYear} onChangeText={setAcademicYear} placeholder="e.g. 2023/2024" />
             </View>
             <View style={styles.formField}>
               <Text style={styles.formLabel}>Semester</Text>
-              <TextInput style={styles.textInput} value={semester} onChangeText={setSemester} />
+              <TextInput style={styles.textInput} value={semester} onChangeText={setSemester} placeholder="e.g. Semester 2" />
             </View>
           </View>
 
