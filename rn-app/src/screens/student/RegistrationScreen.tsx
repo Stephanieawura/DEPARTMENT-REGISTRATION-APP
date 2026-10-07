@@ -14,9 +14,18 @@ import * as DocumentPicker from "expo-document-picker";
 import { Colors } from "../../constants/Colors";
 
 type SubTab = "upload" | "status";
-type VerificationStatus = "Pending" | "Approved" | "Rejected";
+type VerificationStatus = "Not_Submitted" | "Pending" | "Approved" | "Rejected";
 
 const STATUS_CONFIG = {
+  Not_Submitted: {
+    icon: "file-minus" as const,
+    iconColor: "#6b7280",
+    bg: "#f3f4f6",
+    border: "#e5e7eb",
+    headline: "Not Submitted",
+    message: "You have not submitted your registration documents yet.",
+    textColor: "#374151",
+  },
   Pending: {
     icon: "clock" as const,
     iconColor: "#d97706",
@@ -63,8 +72,9 @@ export default function RegistrationScreen() {
   const [academicYear, setAcademicYear] = useState('2023/2024');
   const [semester, setSemester] = useState('Semester 2');
 
-  const status: VerificationStatus = submission?.status === 'APPROVED' ? 'Approved' 
-    : submission?.status === 'REJECTED' ? 'Rejected' : 'Pending';
+  const status: VerificationStatus = !submission ? 'Not_Submitted' 
+    : submission.status === 'APPROVED' ? 'Approved' 
+    : submission.status === 'REJECTED' ? 'Rejected' : 'Pending';
   const cfg = STATUS_CONFIG[status];
   
   useEffect(() => {
@@ -97,11 +107,17 @@ export default function RegistrationScreen() {
     fetchUser();
   }, []);
 
+  const accountCreatedTime = userData?.createdAt ? new Date(userData.createdAt) : null;
+  const validAccountDate = accountCreatedTime && !isNaN(accountCreatedTime.getTime()) ? accountCreatedTime.toLocaleDateString() : "Unknown";
+
+  const submissionTime = submission?.submittedAt ? new Date(submission.submittedAt) : null;
+  const validSubmissionDate = submissionTime && !isNaN(submissionTime.getTime()) ? submissionTime.toLocaleDateString() : "Awaiting";
+
   const timeline = [
-    { label: "Account Created", done: !!userData, time: userData ? new Date(userData.createdAt).toLocaleDateString() : "Pending" },
+    { label: "Account Created", done: !!userData, time: validAccountDate },
     { label: "Courses Synced", done: true, time: "Completed" }, // Simplified
-    { label: "Document Uploaded", done: !!submission, time: submission ? new Date(submission.submittedAt).toLocaleDateString() : "Awaiting" },
-    { label: "Submitted for Verification", done: !!submission, time: submission ? new Date(submission.submittedAt).toLocaleDateString() : "Awaiting" },
+    { label: "Document Uploaded", done: !!submission, time: validSubmissionDate },
+    { label: "Submitted for Verification", done: !!submission, time: validSubmissionDate },
     { label: "Under Review", done: submission?.status === 'APPROVED' || submission?.status === 'REJECTED', time: submission ? "Completed" : "In progress" },
     { label: "Clearance Decision", done: submission?.status === 'APPROVED' || submission?.status === 'REJECTED', time: submission?.status === 'APPROVED' ? "Approved" : submission?.status === 'REJECTED' ? "Rejected" : "Awaiting" },
   ];
