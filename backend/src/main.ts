@@ -8,7 +8,7 @@ import { PrismaClientExceptionFilter } from './common/prisma-client-exception.fi
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
-  app.use(helmet()); // Secure HTTP headers
+  app.use(helmet({ crossOriginResourcePolicy: false })); // Secure HTTP headers, allowing cross-origin for local testing
   app.enableCors(); // So React Native can connect locally
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   
