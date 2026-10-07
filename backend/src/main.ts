@@ -26,5 +26,8 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document);
   
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
+  console.log(`\n========================================================`);
+  console.log(`🚀 BACKEND IS RUNNING AND LISTENING ON: ${await app.getUrl()}`);
+  console.log(`========================================================\n`);
 }
 bootstrap();

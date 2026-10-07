@@ -10,8 +10,11 @@ const getBaseUrl = () => {
   return 'http://127.0.0.1:3000/api';
 };
 
+const baseURL = getBaseUrl();
+console.warn('=== THE APP IS TRYING TO CONNECT TO ===', baseURL);
+
 const api = axios.create({
-  baseURL: getBaseUrl(),
+  baseURL: baseURL,
   headers: {
     'Content-Type': 'application/json',
   },
