@@ -45,32 +45,17 @@ const STATUS_CONFIG = {
   },
 };
 
-const TIMELINE = [
-  { label: "Account Created", done: true, time: "Jan 14, 9:00am" },
-  { label: "Courses Synced", done: true, time: "Jan 15, 9:32am" },
-  { label: "Document Uploaded", done: true, time: "Jan 15, 9:35am" },
-  { label: "Submitted for Verification", done: true, time: "Jan 15, 9:36am" },
-  { label: "Under Review", done: false, time: "In progress" },
-  { label: "Clearance Decision", done: false, time: "Awaiting" },
-];
 
-// Static timeline; ideally this would also come from backend status
-const TIMELINE = [
-  { label: "Account Created", done: true, time: "Jan 14, 9:00am" },
-  { label: "Courses Synced", done: true, time: "Jan 15, 9:32am" },
-  { label: "Document Uploaded", done: true, time: "Jan 15, 9:35am" },
-  { label: "Submitted for Verification", done: true, time: "Jan 15, 9:36am" },
-  { label: "Under Review", done: false, time: "In progress" },
-  { label: "Clearance Decision", done: false, time: "Awaiting" },
-];
 
 export default function RegistrationScreen() {
   const [subTab, setSubTab] = useState<SubTab>("upload");
   const [uploadedFile, setUploadedFile] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
   const [userData, setUserData] = useState<any>(null);
+  const [submission, setSubmission] = useState<any>(null);
 
-  const status: VerificationStatus = "Pending";
+  const status: VerificationStatus = submission?.status === 'APPROVED' ? 'Approved' 
+    : submission?.status === 'REJECTED' ? 'Rejected' : 'Pending';
   const cfg = STATUS_CONFIG[status];
   
   useEffect(() => {
@@ -82,6 +67,15 @@ export default function RegistrationScreen() {
         if (userId) {
           const res = await api.get(`/users/${userId}`);
           setUserData(res.data);
+
+          try {
+            const subRes = await api.get(`/submissions/student/${userId}`);
+            if (subRes.data && subRes.data.length > 0) {
+              setSubmission(subRes.data[0]);
+            }
+          } catch (e) {
+            console.log("No submissions yet");
+          }
         }
       } catch (e) {
         console.error("Failed to load user data:", e);
@@ -98,6 +92,15 @@ export default function RegistrationScreen() {
     { label: "Academic Year", value: "2023/2024" },
     { label: "Semester", value: "Semester 2" },
   ] : [];
+
+  const timeline = [
+    { label: "Account Created", done: !!userData, time: userData ? new Date(userData.createdAt).toLocaleDateString() : "Pending" },
+    { label: "Courses Synced", done: true, time: "Completed" }, // Simplified
+    { label: "Document Uploaded", done: !!submission, time: submission ? new Date(submission.submittedAt).toLocaleDateString() : "Awaiting" },
+    { label: "Submitted for Verification", done: !!submission, time: submission ? new Date(submission.submittedAt).toLocaleDateString() : "Awaiting" },
+    { label: "Under Review", done: submission?.status === 'APPROVED' || submission?.status === 'REJECTED', time: submission ? "Completed" : "In progress" },
+    { label: "Clearance Decision", done: submission?.status === 'APPROVED' || submission?.status === 'REJECTED', time: submission?.status === 'APPROVED' ? "Approved" : submission?.status === 'REJECTED' ? "Rejected" : "Awaiting" },
+  ];
 
   async function handlePick() {
     const result = await DocumentPicker.getDocumentAsync({ type: "application/pdf" });
@@ -269,29 +272,31 @@ export default function RegistrationScreen() {
           {/* Submission details */}
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Submission Details</Text>
-            {[
-              { label: "Reference No.", value: "DEP-2024-10897354-S2" },
-              { label: "Submitted", value: "Jan 15, 2024 at 9:36am" },
-              { label: "Courses", value: "6 courses · 18 credits" },
-              { label: "Document", value: "proof_of_registration_s2.pdf" },
+            {submission ? [
+              { label: "Reference No.", value: `DEP-2024-${submission.id.substring(0, 8).toUpperCase()}` },
+              { label: "Submitted", value: new Date(submission.submittedAt).toLocaleString() },
+              { label: "Courses", value: `${submission.courses?.length || 0} courses` },
+              { label: "Document", value: submission.documentUrl ? submission.documentUrl.split('/').pop() : "No document" },
             ].map((d, i) => (
               <View key={i} style={[styles.detailRow, i > 0 && styles.detailRowBorder]}>
                 <Text style={styles.detailLabel}>{d.label}</Text>
                 <Text style={styles.detailValue}>{d.value}</Text>
               </View>
-            ))}
+            )) : (
+              <Text style={{ color: Colors.gray500, fontSize: 13 }}>No submission found. Please upload your documents first.</Text>
+            )}
           </View>
 
           {/* Timeline */}
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Progress Timeline</Text>
-            {TIMELINE.map((step, i) => (
+            {timeline.map((step, i) => (
               <View key={i} style={styles.timelineStep}>
                 <View style={styles.timelineLeft}>
                   <View style={[styles.timelineDot, step.done ? styles.timelineDotDone : styles.timelineDotPending]}>
                     {step.done && <Feather name="check" size={10} color={Colors.white} />}
                   </View>
-                  {i < TIMELINE.length - 1 && (
+                  {i < timeline.length - 1 && (
                     <View style={[styles.timelineLine, { backgroundColor: step.done ? Colors.deepBlue : "#e5e7eb" }]} />
                   )}
                 </View>
