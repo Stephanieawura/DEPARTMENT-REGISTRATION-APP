@@ -32,6 +32,7 @@ export class SubmissionsService {
         data: {
           studentId,
           status: SubmissionStatus.PENDING,
+          documentUrl: (createSubmissionDto as any).documentUrl,
           courses: {
             create: courseIds.map((courseId) => ({
               course: {

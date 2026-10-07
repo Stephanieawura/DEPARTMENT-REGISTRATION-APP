@@ -60,6 +60,7 @@ model Submission {
   
   status      SubmissionStatus @default(PENDING)
   submittedAt DateTime @default(now())
+  documentUrl String?  // Stores the path or URL to the uploaded PDF file
   
   // A submission can contain multiple courses
   courses     SubmissionCourse[]

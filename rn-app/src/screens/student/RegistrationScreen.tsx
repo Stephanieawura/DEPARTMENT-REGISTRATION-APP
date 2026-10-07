@@ -65,7 +65,7 @@ const FORM_FIELDS = [
 
 export default function RegistrationScreen() {
   const [subTab, setSubTab] = useState<SubTab>("upload");
-  const [uploadedFile, setUploadedFile] = useState<string | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
   const status: VerificationStatus = "Pending";
   const cfg = STATUS_CONFIG[status];
@@ -73,17 +73,53 @@ export default function RegistrationScreen() {
   async function handlePick() {
     const result = await DocumentPicker.getDocumentAsync({ type: "application/pdf" });
     if (!result.canceled && result.assets[0]) {
-      setUploadedFile(result.assets[0].name);
+      setUploadedFile(result.assets[0]);
     }
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!uploadedFile) return;
     setSubmitting(true);
-    setTimeout(() => {
+    try {
+      // 1. Get userId
+      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+      const api = require('../../api').default;
+      
+      const userId = await AsyncStorage.getItem('userId');
+      if (!userId) {
+        Alert.alert("Error", "You must be logged in to submit.");
+        setSubmitting(false);
+        return;
+      }
+
+      // 2. Fetch courses to submit
+      const coursesRes = await api.get('/courses?limit=5');
+      const courseIds = coursesRes.data.data ? coursesRes.data.data.map((c: any) => c.id) : [];
+
+      // 3. Prepare form data
+      const formData = new FormData();
+      formData.append('studentId', userId);
+      formData.append('courseIds', JSON.stringify(courseIds));
+      
+      // We append a dummy file object for React Native Web / Mobile
+      // If result was from DocumentPicker on web, `file` object exists, otherwise `uri`
+      formData.append('file', {
+        uri: uploadedFile.uri || '',
+        name: uploadedFile.name || 'document.pdf',
+        type: uploadedFile.mimeType || 'application/pdf',
+      } as any);
+
+      await api.post('/submissions', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      Alert.alert("Submitted", "Your registration has been submitted and saved in the database!");
+    } catch (e: any) {
+      console.error(e);
+      Alert.alert("Error", e.response?.data?.message || "Failed to submit document to server");
+    } finally {
       setSubmitting(false);
-      Alert.alert("Submitted", "Your registration has been submitted for verification.");
-    }, 1200);
+    }
   }
 
   const TABS: { id: SubTab; label: string; icon: React.ComponentProps<typeof Feather>["name"] }[] = [
@@ -148,7 +184,7 @@ export default function RegistrationScreen() {
                   <Feather name="file-text" size={18} color={Colors.white} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.fileName} numberOfLines={1}>{uploadedFile}</Text>
+                  <Text style={styles.fileName} numberOfLines={1}>{uploadedFile.name}</Text>
                   <Text style={styles.fileMeta}>PDF · Just now</Text>
                 </View>
                 <TouchableOpacity onPress={() => setUploadedFile(null)}>
