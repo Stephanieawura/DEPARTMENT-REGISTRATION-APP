@@ -33,10 +33,23 @@ export default function LoginScreen({ navigation }: Props) {
       return;
     }
 
+    let finalEmail = email.trim();
+
+    // If they typed exactly 8 numbers, auto-append the student domain
+    if (/^\d{8}$/.test(finalEmail)) {
+      finalEmail = `${finalEmail}@st.ug.edu.gh`;
+      setEmail(finalEmail); // Update the input field visually
+    } 
+    // If they typed numbers but not exactly 8, enforce the rule
+    else if (/^\d+$/.test(finalEmail)) {
+      Alert.alert("Invalid ID", "Student ID must be exactly 8 numbers.");
+      return;
+    }
+
     setIsLoading(true);
     try {
       const response = await api.post('/auth/login', {
-        email: email.trim(),
+        email: finalEmail,
         password: password,
       });
 
@@ -81,10 +94,10 @@ export default function LoginScreen({ navigation }: Props) {
         <ScrollView style={styles.body} contentContainerStyle={{ paddingBottom: 40 }}>
           <View style={styles.card}>
             <View style={styles.field}>
-              <Text style={styles.label}>Email Address</Text>
+              <Text style={styles.label}>Student ID or Email</Text>
               <TextInput
                 style={styles.input}
-                placeholder="student@st.ug.edu.gh"
+                placeholder="12345678"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
