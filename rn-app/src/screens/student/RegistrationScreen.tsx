@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
@@ -54,6 +55,14 @@ export default function RegistrationScreen() {
   const [userData, setUserData] = useState<any>(null);
   const [submission, setSubmission] = useState<any>(null);
 
+  // Form states
+  const [name, setName] = useState('');
+  const [studentIdStr, setStudentIdStr] = useState('');
+  const [program, setProgram] = useState('');
+  const [level, setLevel] = useState('');
+  const [academicYear, setAcademicYear] = useState('2023/2024');
+  const [semester, setSemester] = useState('Semester 2');
+
   const status: VerificationStatus = submission?.status === 'APPROVED' ? 'Approved' 
     : submission?.status === 'REJECTED' ? 'Rejected' : 'Pending';
   const cfg = STATUS_CONFIG[status];
@@ -67,6 +76,10 @@ export default function RegistrationScreen() {
         if (userId) {
           const res = await api.get(`/users/${userId}`);
           setUserData(res.data);
+          setName(res.data.name || '');
+          setStudentIdStr(res.data.studentId || '');
+          setProgram(res.data.program || '');
+          setLevel(res.data.level || '');
 
           try {
             const subRes = await api.get(`/submissions/student/${userId}`);
@@ -83,15 +96,6 @@ export default function RegistrationScreen() {
     }
     fetchUser();
   }, []);
-
-  const formFields = userData ? [
-    { label: "Full Name", value: userData.name || "N/A" },
-    { label: "Student ID", value: userData.studentId || "N/A" },
-    { label: "Programme", value: userData.program || "N/A" },
-    { label: "Level", value: `Level ${userData.level || "N/A"}` },
-    { label: "Academic Year", value: "2023/2024" },
-    { label: "Semester", value: "Semester 2" },
-  ] : [];
 
   const timeline = [
     { label: "Account Created", done: !!userData, time: userData ? new Date(userData.createdAt).toLocaleDateString() : "Pending" },
@@ -124,11 +128,19 @@ export default function RegistrationScreen() {
         return;
       }
 
-      // 2. Fetch courses to submit
+      // 2. Save user profile changes first
+      await api.patch(`/users/${userId}`, {
+        name,
+        studentId: studentIdStr,
+        program,
+        level,
+      });
+
+      // 3. Fetch courses to submit
       const coursesRes = await api.get('/courses?limit=5');
       const courseIds = coursesRes.data.data ? coursesRes.data.data.map((c: any) => c.id) : [];
 
-      // 3. Prepare form data
+      // 4. Prepare form data
       const formData = new FormData();
       formData.append('studentId', userId);
       formData.append('courseIds', JSON.stringify(courseIds));
@@ -229,14 +241,30 @@ export default function RegistrationScreen() {
           {/* Form */}
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Departmental Registration Form</Text>
-            {formFields.map((f) => (
-              <View key={f.label} style={styles.formField}>
-                <Text style={styles.formLabel}>{f.label}</Text>
-                <View style={styles.formValue}>
-                  <Text style={styles.formValueText}>{f.value}</Text>
-                </View>
-              </View>
-            ))}
+            <View style={styles.formField}>
+              <Text style={styles.formLabel}>Full Name</Text>
+              <TextInput style={styles.textInput} value={name} onChangeText={setName} placeholder="Enter your full name" />
+            </View>
+            <View style={styles.formField}>
+              <Text style={styles.formLabel}>Student ID</Text>
+              <TextInput style={styles.textInput} value={studentIdStr} onChangeText={setStudentIdStr} placeholder="e.g. 10897354" keyboardType="numeric" />
+            </View>
+            <View style={styles.formField}>
+              <Text style={styles.formLabel}>Programme</Text>
+              <TextInput style={styles.textInput} value={program} onChangeText={setProgram} placeholder="e.g. BSc Information Technology" />
+            </View>
+            <View style={styles.formField}>
+              <Text style={styles.formLabel}>Level</Text>
+              <TextInput style={styles.textInput} value={level} onChangeText={setLevel} placeholder="e.g. 300" />
+            </View>
+            <View style={styles.formField}>
+              <Text style={styles.formLabel}>Academic Year</Text>
+              <TextInput style={styles.textInput} value={academicYear} onChangeText={setAcademicYear} />
+            </View>
+            <View style={styles.formField}>
+              <Text style={styles.formLabel}>Semester</Text>
+              <TextInput style={styles.textInput} value={semester} onChangeText={setSemester} />
+            </View>
           </View>
 
           <TouchableOpacity
@@ -342,8 +370,7 @@ const styles = StyleSheet.create({
   fileMeta: { color: Colors.gray400, fontSize: 11, marginTop: 2 },
   formField: { gap: 4 },
   formLabel: { color: Colors.gray400, fontSize: 10, fontWeight: "700", letterSpacing: 1.2, textTransform: "uppercase" },
-  formValue: { backgroundColor: Colors.lightGray, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10 },
-  formValueText: { color: Colors.darkText, fontSize: 13 },
+  textInput: { backgroundColor: Colors.lightGray, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, color: Colors.darkText, fontSize: 13, minHeight: 44 },
   submitBtn: { backgroundColor: Colors.accentGold, borderRadius: 16, paddingVertical: 16, alignItems: "center" },
   submitBtnDisabled: { opacity: 0.5 },
   submitBtnText: { color: Colors.white, fontSize: 14, fontWeight: "700" },
